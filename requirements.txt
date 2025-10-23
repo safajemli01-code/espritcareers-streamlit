@@ -4,6 +4,3 @@ python-docx
 pytesseract
 Pillow
 pandas
-numpy
-altair
-
