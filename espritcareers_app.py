@@ -3,68 +3,68 @@ import fitz  # PyMuPDF
 from docx import Document
 from PIL import Image
 import pytesseract
-import re, io, json, time, math
+import io, re, json, time
 import pandas as pd
-import numpy as np
 
 # ----------------------------
-# CONFIG & BRANDING
+# CONFIG
 # ----------------------------
 st.set_page_config(
     page_title="EspritCareers",
-    page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 PRIMARY = "#E00000"   # Esprit Red
-DARK = "#111111"
-MUTED = "#6B7280"
-BG = "#0B0C10"
+BG_CARD = "#0f1115"
+BORDER = "#1f2937"
+TEXT_MUTED = "#9ca3af"
 
 st.markdown(f"""
 <style>
-/* Global */
-html, body, [class*="css"]  {{
-  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+:root {{
+  --primary: {PRIMARY};
+  --bg-card: {BG_CARD};
+  --border: {BORDER};
 }}
-/* Header title */
-h1, h2, h3, h4 {{
-  letter-spacing: .3px;
+html, body, [class*="css"] {{
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
 }}
-/* Cards */
 .ec-card {{
-  border: 1px solid #1f2937;
-  border-radius: 16px;
-  padding: 18px 18px 14px;
-  background: #0f1115;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 16px 14px;
+  background: var(--bg-card);
 }}
-/* Primary button */
-div.stButton > button:first-child {{
-  background-color: {PRIMARY};
-  color: #fff; border-radius: 12px; border: none; padding: 8px 14px;
+.ec-title {{
+  font-size: 22px; font-weight: 600; margin-bottom: 8px;
 }}
-/* Tags */
-.badge {{
-  display:inline-block; padding:4px 10px; border-radius:999px; background:#111827; color:#e5e7eb; font-size:12px; border:1px solid #1f2937;
+.ec-subtitle {{
+  color: {TEXT_MUTED}; font-size: 13px; margin-bottom: 8px;
 }}
-.metric-ok {{color:#16a34a}}
-.metric-warn {{color:#f59e0b}}
-.metric-bad {{color:#ef4444}}
+.ec-btn-primary > button {{
+  background-color: var(--primary) !important;
+  color: #fff !important; border: none !important; border-radius: 10px !important;
+}}
+.ec-badge {{
+  display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid #2a2f3a;
+  color:#e5e7eb; font-size:12px; margin-right:6px; background:#131722;
+}}
 </style>
 """, unsafe_allow_html=True)
 
 # ----------------------------
-# SIDEBAR (LOGO + NAV)
+# SIDEBAR
 # ----------------------------
 with st.sidebar:
     try:
-        st.image("assets/esprit_logo.png", use_container_width=True, caption="EspritCareers • v2")
+        st.image("assets/esprit_logo.png", use_container_width=True)
     except Exception:
-        st.write("🎓 EspritCareers")
+        st.write("EspritCareers")
+    st.markdown('<div class="ec-card"><div class="ec-title">Guide</div><div class="ec-subtitle">CV, Lettre, Entretien. Formats acceptés : PDF, DOCX, Image (OCR).</div></div>', unsafe_allow_html=True)
 
 # ----------------------------
-# HELPERS: extraction & NLP light
+# HELPERS: Extraction & Scoring
 # ----------------------------
 def extract_text_from_file(file):
     name = file.name.lower()
@@ -93,20 +93,22 @@ def extract_text_from_file(file):
         return "", False
 
 STOPWORDS = set("""
-le la les un une des et à de du pour par ou au aux en avec sur sous dans d' l' un(e) le/la
-a et/ou que qui quoi dont où alors ainsi donc or ni car the a an to of in on at for from by with as is are
+le la les un une des et à de du pour par ou au aux en avec sur sous dans d' l' the a an to of in on at for from by with as is are
 """.split())
 
-def keyword_candidates(text, top=20):
-    # super simple keywording
+def normalize(t: str) -> str:
+    return re.sub(r"[^a-zA-ZÀ-ÿ0-9\s\-]", " ", t.lower())
+
+def keyword_candidates(text, top=30):
     tokens = re.findall(r"[a-zA-ZÀ-ÿ0-9\+\#\.]{2,}", text.lower())
     tokens = [t for t in tokens if t not in STOPWORDS and not t.isdigit()]
+    if not tokens:
+        return []
     freq = pd.Series(tokens).value_counts().head(top)
     return list(freq.index)
 
 def build_job_keywords(job_text):
     cands = keyword_candidates(job_text, top=30)
-    # heuristique: must-have = top 10, nice-to-have = suivants
     must = cands[:10]
     nice = cands[10:20]
     return {
@@ -115,14 +117,11 @@ def build_job_keywords(job_text):
         "weights": {"mh":0.5,"nh":0.2,"struct":0.15,"quant":0.1,"format":0.05}
     }
 
-def normalize(t):
-    return re.sub(r"[^a-zA-ZÀ-ÿ0-9\s\-]", " ", t.lower())
-
 def keyword_score(cv_text, must_have, nice_to_have):
     t = normalize(cv_text)
-    smh = sum(1 for k in must_have if k.lower() in t)
-    snh = sum(1 for k in nice_to_have if k.lower() in t)
-    return (smh/ max(1,len(must_have))), (snh/ max(1,len(nice_to_have)))
+    smh = sum(1 for k in must_have if k.lower() in t) / max(1, len(must_have))
+    snh = sum(1 for k in nice_to_have if k.lower() in t) / max(1, len(nice_to_have))
+    return smh, snh
 
 def quantify_score(cv_text):
     nums = re.findall(r"\b\d+(\.\d+)?%?|\b\d{4}\b", cv_text)
@@ -140,7 +139,7 @@ def ats_score(cv_text, job_kw):
     smh, snh = keyword_score(cv_text, mh, nh)
     sst = structure_score(cv_text)
     sq  = quantify_score(cv_text)
-    sfo = 1.0  # placeholder (lisibilité/mise en forme)
+    sfo = 1.0  # placeholder mise en forme
     total = 100*(w["mh"]*smh + w["nh"]*snh + w["struct"]*sst + w["quant"]*sq + w["format"]*sfo)
     breakdown = {
         "Must-have": round(100*w["mh"]*smh,1),
@@ -156,14 +155,14 @@ def suggest_improvements(cv_text, job_kw):
     missing_mh = [k for k in job_kw["must_have"] if k.lower() not in t][:6]
     suggestions = []
     if missing_mh:
-        suggestions.append(f"Ajoute/renforce ces mots-clés indispensables : **{', '.join(missing_mh)}**.")
+        suggestions.append(f"Ajouter/renforcer les mots-clés essentiels : {', '.join(missing_mh)}.")
     if quantify_score(cv_text) < 0.6:
-        suggestions.append("Ajoute des **chiffres** (%, €, délais, volumes) pour quantifier tes réalisations.")
+        suggestions.append("Quantifier les réalisations avec des chiffres, pourcentages et délais.")
     if structure_score(cv_text) < 0.8:
-        suggestions.append("Vérifie les **sections** standards : Profil, Expérience, Formation, Compétences, Projets.")
+        suggestions.append("Vérifier les sections standard : Profil, Expérience, Formation, Compétences, Projets.")
     suggestions += [
-        "Utilise des **verbes d’action** : conçu, déployé, optimisé, automatisé, négocié.",
-        "Raccourcis le résumé en 4–5 lignes, orienté **résultats** et **outils**."
+        "Employer des verbes d’action (conçu, déployé, optimisé, automatisé, négocié).",
+        "Condens­er le résumé en 4–5 lignes orientées résultats et outils."
     ]
     return suggestions[:5]
 
@@ -173,105 +172,99 @@ def tone_heuristic(letter_text):
     score_concret = min(50, len(re.findall(r"\b\d+%?|\b(kpi|roi|budget|projet|deadline)\b", t))*5)
     return min(100, score_formel + score_concret)
 
-# Session state to collect analyses for dashboard
-if "history" not in st.session_state:
-    st.session_state["history"] = []
-
-st.title("🎓 EspritCareers")
-st.caption("Plateforme d’employabilité – **Analyse de CV**, **Lettre de motivation**, **Simulation d’entretien**, **Dashboard**.")
-
 # ----------------------------
-# TABS
+# LAYOUT
 # ----------------------------
-tab_cv, tab_cover, tab_interview, tab_dash = st.tabs(["📄 CV", "✉️ Lettre", "🗣️ Entretien", "📊 Dashboard"])
+st.title("EspritCareers")
+st.caption("Plateforme d’employabilité — Analyse de CV, Lettre de motivation, Simulation d’entretien.")
+
+tab_cv, tab_cover, tab_interview = st.tabs(["CV", "Lettre", "Entretien"])
 
 # ----------------------------
 # TAB: CV
 # ----------------------------
 with tab_cv:
-    st.subheader("Analyse de CV (ATS)")
+    st.markdown('<div class="ec-card">', unsafe_allow_html=True)
+    st.markdown('<div class="ec-title">Analyse de CV (ATS)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="ec-subtitle">Téléverser un CV et coller l’offre de poste pour obtenir un score ATS avec explications.</div>', unsafe_allow_html=True)
+
     colA, colB = st.columns([1,1])
     with colA:
-        uploaded_cv = st.file_uploader("Téléverse ton CV (PDF, DOCX ou Image)", type=["pdf","docx","png","jpg","jpeg"], key="cv")
-        job_text = st.text_area("Colle ici l’offre de poste / mission", placeholder="Colle l'offre (missions, compétences, mots-clés, logiciels…)", height=180)
-        run = st.button("🔎 Analyser le CV")
+        uploaded_cv = st.file_uploader("Fichier CV (PDF, DOCX, Image)", type=["pdf","docx","png","jpg","jpeg"], key="cv")
     with colB:
-        st.markdown('<div class="ec-card">', unsafe_allow_html=True)
-        st.markdown("**Conseil**")
-        st.caption("Plus l’offre est détaillée, plus le score ATS est pertinent (mots-clés must-have / nice-to-have).")
-        st.markdown('</div>', unsafe_allow_html=True)
+        job_text = st.text_area("Offre de poste (copier-coller)", height=180)
 
-    if run:
+    run = st.container()
+    with run:
+        col_run, _ = st.columns([0.25, 0.75])
+        with col_run:
+            run_btn = st.button("Analyser", type="primary", use_container_width=True)
+
+    if run_btn:
         if not uploaded_cv or not job_text.strip():
-            st.error("Ajoute un CV **et** colle l’offre de poste, puis relance.")
+            st.error("Veuillez ajouter un CV et l’offre de poste.")
         else:
-            with st.spinner("Extraction du texte…"):
-                text, used_ocr = extract_text_from_file(uploaded_cv)
-
+            text, used_ocr = extract_text_from_file(uploaded_cv)
             if len(text) < 80:
-                st.error("Le document semble vide ou illisible. Essaie un PDF/DOCX de meilleure qualité.")
+                st.error("Le document semble vide ou illisible. Fournir un PDF/DOCX de meilleure qualité.")
             else:
                 job_kw = build_job_keywords(job_text)
                 score, breakdown = ats_score(text, job_kw)
 
-                c1, c2, c3 = st.columns(3)
-                c1.metric("🎯 Score ATS", f"{score}/100")
-                c2.metric("📌 Must-have couverts", f"{int(round(breakdown['Must-have']/50*len(job_kw['must_have']),0))}/{len(job_kw['must_have'])}")
-                c3.metric("🖼️ OCR utilisé", "Oui" if used_ocr else "Non")
+                col1, col2, col3 = st.columns(3)
+                col1.metric("Score ATS", f"{score}/100")
+                col2.metric("Mots-clés essentiels couverts", f"{int(round(breakdown['Must-have']/50*len(job_kw['must_have']),0))}/{len(job_kw['must_have'])}")
+                col3.metric("OCR utilisé", "Oui" if used_ocr else "Non")
 
                 st.progress(min(1.0, score/100))
-                st.markdown("#### Détails du score")
+
+                st.markdown("Détail des points")
                 dfb = pd.DataFrame({"Dimension": list(breakdown.keys()), "Points": list(breakdown.values())})
                 st.bar_chart(dfb.set_index("Dimension"))
 
-                st.markdown("#### Suggestions")
+                st.markdown("Suggestions")
                 for s in suggest_improvements(text, job_kw):
                     st.markdown(f"- {s}")
 
-                with st.expander("Voir le texte extrait"):
-                    st.text_area("Texte extrait", text, height=220)
+                with st.expander("Texte extrait"):
+                    st.text_area("Contenu", text, height=220)
 
-                # Save to history for dashboard
-                st.session_state["history"].append({
-                    "ts": time.time(),
-                    "type": "cv",
-                    "score": score,
-                    "breakdown": breakdown
-                })
-
-                # Export JSON report
                 report = {
                     "score": score,
                     "breakdown": breakdown,
                     "must_have": job_kw["must_have"],
                     "nice_to_have": job_kw["nice_to_have"],
-                    "ocr_used": used_ocr
+                    "ocr_used": used_ocr,
+                    "ts": int(time.time())
                 }
                 st.download_button(
-                    "📥 Télécharger le rapport (JSON)",
+                    "Télécharger le rapport (JSON)",
                     data=json.dumps(report, ensure_ascii=False, indent=2).encode("utf-8"),
                     file_name="rapport_ats.json",
                     mime="application/json"
                 )
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ----------------------------
-# TAB: Lettre
+# TAB: LETTRE
 # ----------------------------
 with tab_cover:
-    st.subheader("Lettre de motivation – Cohérence & Ton")
+    st.markdown('<div class="ec-card">', unsafe_allow_html=True)
+    st.markdown('<div class="ec-title">Lettre de motivation — Cohérence et ton</div>', unsafe_allow_html=True)
+
     lc1, lc2 = st.columns([1,1])
     with lc1:
-        uploaded_letter = st.file_uploader("Téléverse ta lettre (PDF, DOCX ou Image)", type=["pdf","docx","png","jpg","jpeg"], key="cover")
-        letter_text_input = st.text_area("…ou colle le texte ici", height=220)
+        uploaded_letter = st.file_uploader("Fichier lettre (PDF, DOCX, Image) ou coller le texte ci-dessous", type=["pdf","docx","png","jpg","jpeg"], key="cover")
+        letter_text_input = st.text_area("Texte de la lettre", height=220)
     with lc2:
-        job_text_cover = st.text_area("Colle l’offre de poste (référence pour la cohérence)", height=220, key="job_cover")
-        analyze_cover = st.button("🧠 Analyser la lettre")
+        job_text_cover = st.text_area("Offre de poste (référence pour la cohérence)", height=220, key="job_cover")
+        analyze_cover = st.button("Analyser la lettre", type="primary", use_container_width=True)
 
     if analyze_cover:
         if not uploaded_letter and not letter_text_input.strip():
-            st.error("Ajoute un fichier **ou** colle le texte de la lettre.")
+            st.error("Veuillez ajouter un fichier ou coller le texte de la lettre.")
         elif not job_text_cover.strip():
-            st.error("Colle l’offre pour évaluer la cohérence.")
+            st.error("Veuillez coller l’offre de poste pour évaluer la cohérence.")
         else:
             if uploaded_letter:
                 text_letter, _ = extract_text_from_file(uploaded_letter)
@@ -279,109 +272,166 @@ with tab_cover:
                 text_letter = letter_text_input
 
             if len(text_letter) < 60:
-                st.error("La lettre semble trop courte / illisible.")
+                st.error("La lettre semble trop courte ou illisible.")
             else:
                 kw_job = set(build_job_keywords(job_text_cover)["must_have"])
                 overlap = [k for k in kw_job if k in normalize(text_letter)]
                 coh = min(100, int(len(overlap)/max(1,len(kw_job))*100))
                 ton = tone_heuristic(text_letter)
 
-                mc1, mc2 = st.columns(2)
-                mc1.metric("🔗 Cohérence vs offre", f"{coh}/100")
-                mc2.metric("🗒️ Ton & structure", f"{ton}/100")
+                cc1, cc2 = st.columns(2)
+                cc1.metric("Cohérence vs offre", f"{coh}/100")
+                cc2.metric("Ton et structure", f"{ton}/100")
                 st.progress(min(1.0, (coh+ton)/200))
 
-                st.markdown("#### Recommandations")
+                st.markdown("Recommandations")
                 if coh < 70:
-                    st.markdown("- Aligne mieux ta lettre sur les **mots-clés** et missions de l’offre.")
+                    st.markdown("- Renforcer l’alignement sur les mots-clés et missions de l’offre.")
                 if ton < 70:
-                    st.markdown("- Renforce le **ton formel** et ajoute des **exemples chiffrés** (résultats, KPIs).")
-                st.markdown("- Utilise la structure : *Intro* → *Motivation/valeur ajoutée* → *Exemples* → *Conclusion polie*.")
+                    st.markdown("- Renforcer le ton formel et ajouter des éléments concrets (résultats, KPIs).")
+                st.markdown("- Structure suggérée : Introduction, Valeur ajoutée, Exemples, Conclusion polie.")
 
-                with st.expander("Voir le texte de la lettre"):
+                with st.expander("Texte analysé"):
                     st.text_area("Lettre", text_letter, height=220)
-
-                st.session_state["history"].append({
-                    "ts": time.time(),
-                    "type": "letter",
-                    "coherence": coh,
-                    "tone": ton
-                })
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ----------------------------
-# TAB: Entretien
+# TAB: ENTRETIEN (banque élargie)
 # ----------------------------
-with tab_interview:
-    st.subheader("Simulation d’entretien")
-    role = st.selectbox("Rôle ciblé", ["Business Analyst", "Data Analyst", "PMO Junior", "Marketing Analyst", "Développeur Python"])
-    level = st.selectbox("Niveau", ["Junior", "Intermédiaire"])
-    focus = st.multiselect("Focus", ["SQL", "Python", "Excel/BI", "Gestion de projet", "Communication", "Produit"])
-    gen = st.button("🎤 Générer des questions")
-
-    if gen:
-        qcm = []
-        openq = []
-        # QCM simple en fonction du focus
-        if "SQL" in focus:
-            qcm.append({"q":"Quelle requête renvoie les 10 dernières lignes d'une table `orders` ?", 
-                        "opts":["SELECT * FROM orders LIMIT 10;",
-                                "SELECT * FROM orders ORDER BY created_at DESC LIMIT 10;",
-                                "SELECT TOP 10 * FROM orders;"],
-                        "correct":1})
-        if "Python" in focus:
-            qcm.append({"q":"Quel objet stocke des paires clé/valeur en Python ?", 
-                        "opts":["list","tuple","dict"], "correct":2})
-        if "Gestion de projet" in focus:
-            qcm.append({"q":"Dans SCRUM, qui priorise le backlog ?", 
-                        "opts":["Scrum Master","Product Owner","Développeur"], "correct":1})
-
-        openq += [
-            {"q": "Donne un exemple **STAR** où tu as amélioré un KPI clé."},
-            {"q": "Comment gères-tu un stakeholder **difficile** ?"},
-            {"q": "Décris une **analyse** dont l’impact a été mesuré (temps, coûts, qualité)."}
+QUESTION_BANK = {
+    # Domaines supplémentaires: Finance, Supply Chain, RH, Marketing, Data, Dév, PM/PMO
+    "Business Analyst": {
+        "QCM": [
+            ("Quel livrable décrit les besoins fonctionnels d’un projet ?", ["SLA", "BRD", "SOW"], 1),
+            ("Quel diagramme modélise les interactions utilisateur-système ?", ["UML Use Case", "Gantt", "PERT"], 0),
+            ("Quel artefact capture l’acceptation d’une fonctionnalité ?", ["Definition of Ready", "User Story + critères d’acceptation", "Definition of Done"], 1),
+        ],
+        "OPEN": [
+            "Décrivez une situation où vous avez clarifié un besoin ambigu et l’impact sur le projet.",
+            "Donnez un exemple où vous avez arbitré des priorités conflictuelles.",
+            "Expliquez une recommandation que vous avez formulée à partir de données et son résultat."
         ]
+    },
+    "Data Analyst": {
+        "QCM": [
+            ("Quelle mesure évalue la dispersion autour de la moyenne ?", ["Variance", "Médiane", "Mode"], 0),
+            ("Quel join SQL renvoie seulement les correspondances ?", ["LEFT JOIN", "INNER JOIN", "FULL OUTER JOIN"], 1),
+            ("Quel graphique privilégier pour une série temporelle ?", ["Histogramme", "Linéaire", "Secteurs"], 1),
+        ],
+        "OPEN": [
+            "Décrivez un tableau de bord que vous avez conçu et ses indicateurs clés.",
+            "Expliquez une analyse ayant conduit à une décision mesurable.",
+            "Comment gérez-vous des données manquantes ou aberrantes ?"
+        ]
+    },
+    "PMO": {
+        "QCM": [
+            ("Dans un PMO, quel est l’objectif principal ?", ["Vente", "Gouvernance et standardisation", "Support juridique"], 1),
+            ("Quel indicateur suit l’avancement coût/délai/portée ?", ["RACI", "EVM", "SIPOC"], 1),
+            ("Qui est responsable du backlog produit ?", ["Scrum Master", "Product Owner", "Sponsor"], 1),
+        ],
+        "OPEN": [
+            "Expliquez un plan de rattrapage que vous avez orchestré sur un projet en dérive.",
+            "Comment standardiseriez-vous les reportings d’un portefeuille projets ?",
+            "Décrivez votre approche de gestion des risques prioritaires."
+        ]
+    },
+    "Marketing": {
+        "QCM": [
+            ("Quel cadre structure une proposition de valeur ?", ["SWOT", "4P/7P", "JTBD"], 2),
+            ("Quel canal mesure le mieux l’intention active ?", ["SEO/SEA", "Affichage", "RP"], 0),
+            ("Quel KPI évalue la fidélité ?", ["CAC", "CLV", "CPA"], 1),
+        ],
+        "OPEN": [
+            "Décrivez une campagne que vous avez pilotée et ses résultats.",
+            "Expliquez votre méthode de test A/B et de mesure d’impact.",
+            "Comment priorisez-vous les segments et messages ?"
+        ]
+    },
+    "Finance": {
+        "QCM": [
+            ("Quel état présente les flux de trésorerie ?", ["Bilan", "Compte de résultat", "Tableau des flux de trésorerie"], 2),
+            ("Que signifie EBITDA ?", ["Résultat brut d’exploitation", "Résultat net", "Chiffre d’affaires"], 0),
+            ("Quel indicateur mesure la rentabilité d’un investissement ?", ["IRR/TRI", "WACC", "VAR"], 0),
+        ],
+        "OPEN": [
+            "Décrivez une analyse de rentabilité et vos recommandations.",
+            "Comment gérez-vous un budget sous contrainte forte ?",
+            "Donnez un exemple de réduction de coûts mesurable."
+        ]
+    },
+    "Supply Chain": {
+        "QCM": [
+            ("Quel indicateur suit la fiabilité des stocks ?", ["OTIF", "Fill Rate", "Lead Time"], 1),
+            ("Quel modèle vise à réduire les gaspillages ?", ["Lean", "Six Sigma", "PERT"], 0),
+            ("Quel est l’objectif du S&OP ?", ["Alignement demande/offre", "Reporting RH", "Audit qualité"], 0),
+        ],
+        "OPEN": [
+            "Expliquez une optimisation de flux logistique et son impact.",
+            "Comment gérez-vous des ruptures fournisseurs critiques ?",
+            "Décrivez un projet S&OP ou une prévision améliorée."
+        ]
+    },
+    "Ressources Humaines": {
+        "QCM": [
+            ("Quel indicateur mesure la rétention ?", ["Turnover", "Absenteisme", "NPS"], 0),
+            ("Quel document formalise un objectif trimestriel ?", ["OKR", "SLA", "MoU"], 0),
+            ("Quel risque majeur du recrutement sans ATS ?", ["Time-to-hire élevé", "CLV bas", "Churn client"], 0),
+        ],
+        "OPEN": [
+            "Décrivez un processus d’onboarding standardisé.",
+            "Comment améliorer la qualité des recrutements ?",
+            "Expliquez une initiative RH à impact mesurable."
+        ]
+    },
+    "Développeur Python": {
+        "QCM": [
+            ("Quel type stocke des paires clé/valeur ?", ["list", "dict", "tuple"], 1),
+            ("Quelle structure pour gérer des files FIFO ?", ["list", "deque", "set"], 1),
+            ("Quel outil pour l’isolation des dépendances ?", ["virtualenv/venv", "cron", "make"], 0),
+        ],
+        "OPEN": [
+            "Décrivez un script automatisant une tâche et ses gains.",
+            "Comment assurez-vous la qualité (tests, linting) ?",
+            "Expliquez une optimisation de performance réalisée."
+        ]
+    }
+}
 
-        st.markdown("#### QCM")
-        score_qcm = 0
-        for i, item in enumerate(qcm):
-            st.write(f"**Q{i+1}.** {item['q']}")
-            ans = st.radio("Réponse :", item["opts"], key=f"qcm{i}")
-            if st.button(f"Vérifier Q{i+1}", key=f"chk{i}"):
-                idx = item["opts"].index(ans)
-                if idx == item["correct"]:
-                    st.success("✔️ Correct")
-                    score_qcm += 1
+with tab_interview:
+    st.markdown('<div class="ec-card">', unsafe_allow_html=True)
+    st.markdown('<div class="ec-title">Simulation d’entretien</div>', unsafe_allow_html=True)
+
+    domain = st.selectbox(
+        "Domaine",
+        list(QUESTION_BANK.keys())
+    )
+    level = st.selectbox("Niveau", ["Junior", "Intermédiaire"])
+    add_focus = st.text_input("Focus (mots-clés séparés par des virgules, optionnel)")
+
+    gen_btn = st.button("Générer les questions", type="primary", use_container_width=True)
+
+    if gen_btn:
+        bank = QUESTION_BANK[domain]
+        # QCM
+        st.markdown("QCM")
+        qcm_df_rows = []
+        for i, (q, options, correct_idx) in enumerate(bank["QCM"], start=1):
+            st.write(f"{i}. {q}")
+            choice = st.radio("Réponse", options, key=f"{domain}_qcm_{i}")
+            if st.button(f"Vérifier {i}", key=f"check_{domain}_{i}"):
+                if options.index(choice) == correct_idx:
+                    st.success("Correct")
                 else:
-                    st.error(f"❌ Mauvaise réponse. Bonne réponse : **{item['opts'][item['correct']]}**")
+                    st.error(f"Mauvaise réponse. Bonne réponse : {options[correct_idx]}")
+            qcm_df_rows.append({"Question": q, "Options": " | ".join(options), "Bonne réponse": options[correct_idx]})
+        if qcm_df_rows:
+            st.dataframe(pd.DataFrame(qcm_df_rows))
 
-        st.markdown("#### Questions ouvertes (guide)")
-        for j, q in enumerate(openq):
-            st.write(f"- {q['q']}")
+        # Ouvertes
+        st.markdown("Questions ouvertes (guide)")
+        for j, q in enumerate(bank["OPEN"], start=1):
+            st.markdown(f"- {q}")
 
-        st.info("Astuce : Réponds en **STAR** (Situation, Tâche, Action, Résultat) et **quantifie** ton impact.")
-
-# ----------------------------
-# TAB: Dashboard
-# ----------------------------
-with tab_dash:
-    st.subheader("Dashboard – Démo")
-    hist = st.session_state.get("history", [])
-    if not hist:
-        st.caption("Les résultats de tes analyses s’afficheront ici.")
-    else:
-        df = pd.DataFrame(hist)
-        c1, c2 = st.columns(2)
-        with c1:
-            st.metric("Analyses réalisées", len(df))
-        with c2:
-            if "score" in df.columns:
-                st.metric("Score ATS moyen", f"{round(df['score'].dropna().mean(),1)} / 100")
-        st.markdown("#### Historique (table)")
-        st.dataframe(df.fillna("-"))
-        st.markdown("#### Répartition par type")
-        counts = df["type"].value_counts()
-        st.bar_chart(counts)
-
-# ----------------------------
-# END
-# ----------------------------
+        st.info("Conseil : répondre selon STAR (Situation, Tâche, Action, Résultat) et quantifier l’impact lorsque c’est possible.")
+    st.markdown('</div>', unsafe_allow_html=True)
