@@ -101,6 +101,23 @@ div.stButton > button:first-child {{
 # HEADER (ruban + logo)
 # ==============================
 st.markdown('<div class="ec-topbar">', unsafe_allow_html=True)
+# ==============================
+# INTRODUCTION
+# ==============================
+st.markdown('<div class="ec-card">', unsafe_allow_html=True)
+st.markdown("""
+### 🎓 À propos d’EspritCareers
+EspritCareers est une interface intelligente développée au sein du **Pôle Employabilité d’ESPRIT School of Business**, dans le cadre du projet de fin d’études *Business Analytics & IA Générative*.
+
+Elle vise à :
+- **Accompagner les étudiants et diplômés** dans l’optimisation de leurs candidatures.  
+- **Automatiser** l’évaluation des **CV**, **lettres de motivation**, et **préparer les entretiens** via une IA explicable.  
+- **Renforcer la visibilité des forces et des axes d’amélioration** grâce à un scoring transparent.
+
+💡 Ce démonstrateur illustre l’intégration de **l’IA générative** dans les processus d’employabilité et d’orientation professionnelle.
+""")
+st.markdown('</div>', unsafe_allow_html=True)
+
 col_logo, col_titles = st.columns([0.1, 0.9])
 with col_logo:
     logo_path = "assets/esprit_logo.png"
