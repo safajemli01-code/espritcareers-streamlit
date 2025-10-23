@@ -58,14 +58,10 @@ div.stButton > button:first-child {{
 # SIDEBAR (LOGO + NAV)
 # ----------------------------
 with st.sidebar:
-    st.image("assets/esprit_logo.png", use_column_width=True, caption="EspritCareers • v2")
-    st.markdown("**Pôle Employabilité – Démonstrateur IA**")
-    st.markdown('<span class="badge">PDF</span> <span class="badge">DOCX</span> <span class="badge">Image (OCR)</span> <span class="badge">ATS</span> <span class="badge">Entretien</span>', unsafe_allow_html=True)
-    st.divider()
-    st.markdown("**Guide rapide**")
-    st.caption("1) Onglet **CV** : upload, colle l’offre, lance l’analyse.\n2) **Lettre** : upload/texte, cohérence vs offre.\n3) **Entretien** : questions QCM + ouvertes.\n4) **Dashboard** : stats démo.")
-    st.divider()
-    st.caption("© EspritCareers • Démo académique")
+    try:
+        st.image("assets/esprit_logo.png", use_container_width=True, caption="EspritCareers • v2")
+    except Exception:
+        st.write("🎓 EspritCareers")
 
 # ----------------------------
 # HELPERS: extraction & NLP light
