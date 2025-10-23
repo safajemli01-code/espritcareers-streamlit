@@ -108,7 +108,7 @@ st.markdown('<div class="ec-card">', unsafe_allow_html=True)
 st.markdown("""
 ## Bienvenue sur EspritCareers
 
-**EspritCareers** est une plateforme innovante conçue par le **Pôle Employabilité d’ESPRIT School of Business** pour accompagner les étudiants et jeunes diplômés dans leur parcours professionnel.
+**EspritCareers** est une plateforme innovante conçue par le **Pôle Employabilité du Groupe ESPRIT ** pour accompagner les étudiants et jeunes diplômés dans leur parcours professionnel.
 
 Cette solution s’appuie sur l’**intelligence artificielle générative** pour :
 - Analyser et améliorer les **CV** et **lettres de motivation** ;  
