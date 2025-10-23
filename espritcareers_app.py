@@ -5,6 +5,9 @@ from PIL import Image
 import pytesseract
 import io, re, json, time, os
 import pandas as pd
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import cm
 
 # ================
 # CONFIG GLOBAL
@@ -20,70 +23,96 @@ PRIMARY = "#E00000"     # rouge Esprit
 BG      = "#0B0C10"
 CARD    = "#0F1115"
 BORDER  = "#1F2937"
-TEXT    = "#E5E7EB"
-MUTED   = "#9CA3AF"
+TEXT    = "#E8EAED"
+MUTED   = "#A1A7B0"
 
-# CSS (dark, pro, clean)
+# Google Fonts (Inter)
+st.markdown("""
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+""", unsafe_allow_html=True)
+
+# CSS (dark, pro, aligné Esprit)
 st.markdown(f"""
 <style>
 :root {{
-  --primary: {PRIMARY};
-  --bg: {BG};
-  --card: {CARD};
-  --border: {BORDER};
-  --text: {TEXT};
-  --muted: {MUTED};
+  --primary:{PRIMARY}; --bg:{BG}; --card:{CARD}; --border:{BORDER};
+  --text:{TEXT}; --muted:{MUTED};
 }}
 html, body, [class*="css"] {{
-  background: var(--bg) !important;
-  color: var(--text);
+  background: var(--bg) !important; color: var(--text);
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
 }}
-/* Inputs / buttons */
+/* Header "ruban" oblique rouge façon Esprit */
+.ec-topbar {{
+  position: relative; padding: 18px 20px; margin: 0 0 18px 0;
+  background: linear-gradient(90deg, rgba(224,0,0,.95) 0%, rgba(224,0,0,.85) 70%, rgba(224,0,0,.65) 100%);
+  border-bottom: 1px solid #7a0c0c;
+  clip-path: polygon(0 0, 100% 0, 92% 100%, 0 100%);
+}}
+.ec-topbar .brand {{
+  display:flex; align-items:center; gap:14px;
+}}
+.ec-topbar img {{ height:32px; }}
+.ec-topbar .title {{ font-size:18px; font-weight:600; letter-spacing:.2px; }}
+.ec-topbar .subtitle {{ font-size:12px; color:#fff; opacity:.9; margin-top:2px; }}
+
+/* Onglets sobres */
+.stTabs [role="tablist"] {{
+  border-bottom: 1px solid var(--border);
+  gap: 6px; padding: 0 6px;
+}}
+.stTabs [role="tab"] {{
+  color: var(--muted); border: 1px solid var(--border); border-bottom: none;
+  background: #0c0f14; padding: 8px 14px; border-top-left-radius:10px; border-top-right-radius:10px;
+}}
+.stTabs [aria-selected="true"] {{
+  color: #fff; background: #12161d; border-color: #2a3240;
+}}
+
+/* Cartes */
+.ec-card {{
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px 16px 12px; margin-bottom: 14px;
+}}
+.ec-title {{ font-size: 18px; font-weight: 600; margin-bottom: 6px; }}
+.ec-sub   {{ color: var(--muted); font-size: 13px; margin-bottom: 10px; }}
+
+/* Boutons */
+div.stButton > button:first-child {{
+  background: var(--primary) !important; color:#fff !important; border:0 !important;
+  border-radius: 10px !important; padding:8px 14px !important;
+}}
+
+/* Inputs */
 .stTextInput > div > div > input,
 .stTextArea textarea, .stSelectbox div[data-baseweb="select"] > div {{
-  background: #0e1117 !important;
-  color: var(--text) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 10px !important;
+  background:#0e1117 !important; color:#e8eaed !important;
+  border:1px solid var(--border) !important; border-radius:10px !important;
 }}
-div.stButton > button:first-child {{
-  background: var(--primary) !important;
-  color: #fff !important;
-  border: 0 !important;
-  border-radius: 10px !important;
-}}
-/* Cards */
-.ec-card {{
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 16px 16px 12px;
-}}
-.ec-title {{ font-size: 20px; font-weight: 600; margin-bottom: 8px; }}
-.ec-sub   {{ color: var(--muted); font-size: 13px; margin-bottom: 8px; }}
-.ec-sep   {{ border-top: 1px solid var(--border); margin: 10px 0 14px; }}
-/* Tables */
-table, .stDataFrame div {{
-  color: var(--text) !important;
-}}
+
+/* Tables & métriques */
+.stDataFrame, .stTable {{ color: var(--text) !important; }}
 </style>
 """, unsafe_allow_html=True)
 
 # ==============================
-# SIDEBAR (logo optionnel)
+# HEADER (ruban + logo)
 # ==============================
-with st.sidebar:
-    # Afficher le logo si présent, sinon un titre
+st.markdown('<div class="ec-topbar">', unsafe_allow_html=True)
+col_logo, col_titles = st.columns([0.1, 0.9])
+with col_logo:
     logo_path = "assets/esprit_logo.png"
     if os.path.exists(logo_path):
         try:
             st.image(logo_path, use_container_width=True)
         except Exception:
-            st.write("EspritCareers")
-    else:
-        st.write("EspritCareers")
-    st.markdown('<div class="ec-card"><div class="ec-title">Guide</div><div class="ec-sub">Formats : PDF, DOCX, Image (OCR si dispo). Onglets : CV, Lettre, Entretien.</div></div>', unsafe_allow_html=True)
+            st.write("")  # logo optionnel
+with col_titles:
+    st.markdown('<div class="brand"><div class="title">EspritCareers</div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitle">Pôle Employabilité — Analyse de CV, Lettre & Simulation d’entretien</div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
 
 # ==============================
 # HELPERS (extraction & scoring)
@@ -106,13 +135,11 @@ def extract_text_from_file(uploaded_file):
         for page in doc:
             t = page.get_text().strip()
             if not t:
-                # OCR fallback si page scannée
                 try:
                     pix = page.get_pixmap(dpi=300)
                     ocr_txt = safe_ocr(pix.tobytes())
                     if ocr_txt:
-                        t = ocr_txt
-                        used_ocr = True
+                        t = ocr_txt; used_ocr = True
                 except Exception:
                     pass
             text_total += ("\n" + (t or ""))
@@ -210,10 +237,6 @@ def tone_heuristic(letter_text):
 # ==============================
 # EXPORT PDF (rapport simple)
 # ==============================
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-from reportlab.lib.units import cm
-
 def export_pdf_report(filename: str, title: str, fields: dict):
     """Génère un PDF texte simple (fiable sur Streamlit Cloud)."""
     path = f"/tmp/{filename}"
@@ -227,7 +250,6 @@ def export_pdf_report(filename: str, title: str, fields: dict):
     c.setFont("Helvetica", 11)
     for k, v in fields.items():
         line = f"{k}: {v}"
-        # wrap simple
         for chunk in [line[i:i+95] for i in range(0, len(line), 95)]:
             c.drawString(x, y, chunk)
             y -= 0.7*cm
@@ -241,11 +263,8 @@ def export_pdf_report(filename: str, title: str, fields: dict):
         return f.read()
 
 # ==============================
-# LAYOUT (3 onglets)
+# UI
 # ==============================
-st.title("EspritCareers")
-st.caption("Plateforme d’employabilité — Analyse de CV, Lettre de motivation, Simulation d’entretien.")
-
 tab_cv, tab_cover, tab_interview = st.tabs(["CV", "Lettre", "Entretien"])
 
 # ---------------
@@ -254,7 +273,7 @@ tab_cv, tab_cover, tab_interview = st.tabs(["CV", "Lettre", "Entretien"])
 with tab_cv:
     st.markdown('<div class="ec-card">', unsafe_allow_html=True)
     st.markdown('<div class="ec-title">Analyse de CV (ATS)</div>', unsafe_allow_html=True)
-    st.markdown('<div class="ec-sub">Téléverse ton CV et colle l’offre de poste pour obtenir un score ATS explicable.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="ec-sub">Téléverser un CV et coller l’offre de poste pour obtenir un score explicable.</div>', unsafe_allow_html=True)
 
     c1, c2 = st.columns([1,1])
     with c1:
@@ -277,13 +296,18 @@ with tab_cv:
                 score, breakdown = ats_score(text, job_kw)
 
                 m1, m2, m3 = st.columns(3)
-                m1.metric("Score ATS", f"{score}/100")
                 covered = int(round(breakdown['Must-have']/50*len(job_kw['must_have']), 0))
-                m2.metric("Mots-clés essentiels couverts", f"{covered}/{len(job_kw['must_have'])}")
-                m3.metric("OCR utilisé", "Oui" if used_ocr else "Non")
+                m1.metric("Score ATS", f"{score}/100")
+                m2.metric("Essentiels", f"{covered}/{len(job_kw['must_have'])}")
+                m3.metric("OCR", "Oui" if used_ocr else "Non")
 
-                st.progress(min(1.0, score/100))
-                st.markdown('<div class="ec-sep"></div>', unsafe_allow_html=True)
+                # Barre de progression personnalisée
+                st.markdown(
+                    f"<div style='height:8px;background:#161a22;border:1px solid {BORDER};"
+                    f"border-radius:20px;overflow:hidden'><div style='height:100%;width:{min(100,score)}%;"
+                    f"background:{PRIMARY}'></div></div>",
+                    unsafe_allow_html=True
+                )
 
                 st.markdown("**Détail des points**")
                 dfb = pd.DataFrame({"Dimension": list(breakdown.keys()), "Points": list(breakdown.values())})
@@ -307,10 +331,11 @@ with tab_cv:
                         "Structure": f"{breakdown['Structure']}",
                         "Quantification": f"{breakdown['Quantification']}",
                         "Mise en forme": f"{breakdown['Mise en forme']}",
-                        "OCR utilisé": "Oui" if used_ocr else "Non"
+                        "OCR": "Oui" if used_ocr else "Non"
                     }
                 )
-                st.download_button("Télécharger le rapport (PDF)", data=pdf_bytes, file_name="rapport_cv.pdf", mime="application/pdf")
+                st.download_button("Télécharger le rapport (PDF)", data=pdf_bytes,
+                                   file_name="rapport_cv.pdf", mime="application/pdf")
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ---------------
@@ -334,11 +359,9 @@ with tab_cover:
         elif not job_text_cover.strip():
             st.error("Veuillez coller l’offre pour évaluer la cohérence.")
         else:
-            letter_text = ""
+            letter_text = letter_text_input
             if file_letter:
                 letter_text, _ = extract_text_from_file(file_letter)
-            else:
-                letter_text = letter_text_input
 
             if len(letter_text) < 60:
                 st.error("La lettre semble trop courte ou illisible.")
@@ -351,9 +374,14 @@ with tab_cover:
                 cc1, cc2 = st.columns(2)
                 cc1.metric("Cohérence vs offre", f"{coh}/100")
                 cc2.metric("Ton & structure", f"{ton}/100")
-                st.progress(min(1.0, (coh+ton)/200))
 
-                st.markdown('<div class="ec-sep"></div>', unsafe_allow_html=True)
+                st.markdown(
+                    f"<div style='height:8px;background:#161a22;border:1px solid {BORDER};"
+                    f"border-radius:20px;overflow:hidden'><div style='height:100%;width:{min(100,int((coh+ton)/2))}%;"
+                    f"background:{PRIMARY}'></div></div>",
+                    unsafe_allow_html=True
+                )
+
                 st.markdown("**Recommandations**")
                 if coh < 70:
                     st.markdown("- Renforcer l’alignement sur les mots-clés et les missions de l’offre.")
@@ -374,14 +402,14 @@ with tab_cover:
                         "Mots-clés couverts": ", ".join(overlap) if overlap else "—"
                     }
                 )
-                st.download_button("Télécharger le rapport (PDF)", data=pdf_bytes, file_name="rapport_lettre.pdf", mime="application/pdf")
+                st.download_button("Télécharger le rapport (PDF)", data=pdf_bytes,
+                                   file_name="rapport_lettre.pdf", mime="application/pdf")
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ---------------
 # TAB ENTRETIEN
 # ---------------
 QUESTION_BANK = {
-    # Domaines élargis et pro (QCM + ouvertes)
     "Business Analyst": {
         "QCM": [
             ("Quel livrable formalise les exigences fonctionnelles ?", ["SLA", "BRD", "SOW"], 1),
@@ -390,8 +418,8 @@ QUESTION_BANK = {
             ("Quel outil pour cartographier un processus As-Is/To-Be ?", ["SIPOC/BPMN", "Ishikawa", "Pareto"], 0),
         ],
         "OPEN": [
-            "Décrivez un besoin ambigu que vous avez clarifié et l’impact sur le projet.",
-            "Racontez un arbitrage de priorités et votre démarche.",
+            "Décrivez un besoin ambigu clarifié et l’impact sur le projet.",
+            "Arbitrage de priorités : démarche et critères.",
             "Exemple d’analyse ayant conduit à une décision mesurable."
         ]
     },
@@ -403,8 +431,8 @@ QUESTION_BANK = {
             ("Test pour comparer deux moyennes ?", ["Chi²", "ANOVA à 1 facteur", "t-test"], 2),
         ],
         "OPEN": [
-            "Décrivez un dashboard (KPI, utilisateurs, décisions prises).",
-            "Comment traitez-vous les données manquantes et aberrantes ?",
+            "Décrivez un dashboard (KPI, utilisateurs, décisions).",
+            "Traitement des données manquantes et aberrantes.",
             "Exemple de modélisation simple et validation."
         ]
     },
@@ -429,8 +457,8 @@ QUESTION_BANK = {
             ("Expérimentation pour optimiser un funnel ?", ["Test A/B", "Pareto", "PERT"], 0),
         ],
         "OPEN": [
-            "Décrivez une campagne et son impact mesuré.",
-            "Votre approche d’A/B test et d’attribution.",
+            "Campagne pilotée et impact mesuré.",
+            "Approche d’A/B test et d’attribution.",
             "Priorisation des segments et messages."
         ]
     },
@@ -470,7 +498,7 @@ QUESTION_BANK = {
         "OPEN": [
             "Onboarding standardisé : étapes clés.",
             "Améliorer la qualité des recrutements.",
-            "Exemple d’initiative RH à impact mesurable."
+            "Initiative RH à impact mesurable."
         ]
     },
     "Développeur Python": {
@@ -478,7 +506,7 @@ QUESTION_BANK = {
             ("Type clé/valeur ?", ["list", "dict", "tuple"], 1),
             ("Structure FIFO ?", ["list", "deque", "set"], 1),
             ("Outil d’isolation des deps ?", ["virtualenv/venv", "cron", "make"], 0),
-            ("Complexité temps de dict lookup ?", ["O(1) en moyenne", "O(n)", "O(log n)"], 0),
+            ("Complexité d’un dict lookup ?", ["O(1) en moyenne", "O(n)", "O(log n)"], 0),
         ],
         "OPEN": [
             "Automatisation réalisée et gains.",
@@ -490,11 +518,11 @@ QUESTION_BANK = {
         "QCM": [
             ("Principe pour hiérarchie visuelle ?", ["Gestalt", "DRY", "SOLID"], 0),
             ("Mesure d’utilisabilité ?", ["SUS", "NPS", "CLV"], 0),
-            ("Pattern pour états chargement ?", ["Skeleton", "Dropdown", "Modal"], 0),
+            ("Pattern pour états de chargement ?", ["Skeleton", "Dropdown", "Modal"], 0),
         ],
         "OPEN": [
             "Processus de design (recherche → prototypage → test).",
-            "Exemple d’amélioration mesurable d’un parcours.",
+            "Amélioration mesurable d’un parcours.",
             "Gestion de la cohérence (Design System)."
         ]
     }
@@ -529,7 +557,6 @@ with tab_interview:
         if table_rows:
             st.dataframe(pd.DataFrame(table_rows), use_container_width=True)
 
-        st.markdown('<div class="ec-sep"></div>', unsafe_allow_html=True)
         st.markdown("**Questions ouvertes (guide)**")
         for j, q in enumerate(bank["OPEN"], start=1):
             st.markdown(f"- {q}")
