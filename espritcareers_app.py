@@ -589,7 +589,7 @@ import numpy as np
 # ÉTAT INITIAL — Compteurs dynamiques
 # ==============================
 if "cv_count" not in st.session_state:
-    st.session_state.cv_count = 38  # valeur initiale réaliste
+    st.session_state.cv_count = 38  # Valeur réaliste initiale
 if "letter_count" not in st.session_state:
     st.session_state.letter_count = 24
 
@@ -609,10 +609,14 @@ with tab_cv:
             key="cv_upload_tab1"
         )
     with c2:
-        job_text = st.text_area("Offre de poste (copier/coller)", height=180)
+        job_text = st.text_area(
+            "Offre de poste (copier/coller)",
+            height=180,
+            key="job_text_tab1"
+        )
 
     col_btn, _ = st.columns([0.25, 0.75])
-    run_cv = col_btn.button("Analyser", use_container_width=True)
+    run_cv = col_btn.button("Analyser", use_container_width=True, key="analyze_cv_btn")
 
     if run_cv:
         if not file_cv or not job_text.strip():
@@ -622,7 +626,7 @@ with tab_cv:
             if len(text) < 80:
                 st.error("Le document semble vide ou illisible. Fournir un PDF/DOCX de meilleure qualité.")
             else:
-                # 🔴 Incrémenter compteur CV
+                # 🔴 Incrémenter le compteur CV
                 st.session_state.cv_count += 1
 
                 job_kw = build_job_keywords(job_text)
@@ -651,7 +655,7 @@ with tab_cv:
                     st.markdown(f"- {s}")
 
                 with st.expander("Texte extrait"):
-                    st.text_area("CV (texte)", text, height=240)
+                    st.text_area("CV (texte)", text, height=240, key="cv_text_preview_tab1")
 
                 pdf_bytes = export_pdf_report(
                     filename="rapport_cv.pdf",
@@ -670,7 +674,8 @@ with tab_cv:
                     "Télécharger le rapport (PDF)",
                     data=pdf_bytes,
                     file_name="rapport_cv.pdf",
-                    mime="application/pdf"
+                    mime="application/pdf",
+                    key="download_cv_btn"
                 )
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -689,10 +694,18 @@ with tab_cover:
             type=["pdf", "docx", "png", "jpg", "jpeg"],
             key="letter_upload_tab2"
         )
-        letter_text_input = st.text_area("Texte de la lettre", height=220)
+        letter_text_input = st.text_area(
+            "Texte de la lettre",
+            height=220,
+            key="letter_text_tab2"
+        )
     with lc2:
-        job_text_cover = st.text_area("Offre (référence pour la cohérence)", height=220)
-        run_letter = st.button("Analyser la lettre", use_container_width=True)
+        job_text_cover = st.text_area(
+            "Offre (référence pour la cohérence)",
+            height=220,
+            key="job_text_tab2"
+        )
+        run_letter = st.button("Analyser la lettre", use_container_width=True, key="analyze_letter_btn")
 
     if run_letter:
         if not file_letter and not letter_text_input.strip():
@@ -707,7 +720,7 @@ with tab_cover:
             if len(letter_text) < 60:
                 st.error("La lettre semble trop courte ou illisible.")
             else:
-                # 🔴 Incrémenter compteur lettres
+                # 🔴 Incrémenter le compteur lettres
                 st.session_state.letter_count += 1
 
                 kw_job = set(build_job_keywords(job_text_cover)["must_have"])
@@ -734,7 +747,7 @@ with tab_cover:
                 st.markdown("- Structure suggérée : Introduction → Valeur ajoutée → Exemples → Conclusion polie.")
 
                 with st.expander("Texte analysé"):
-                    st.text_area("Lettre", letter_text, height=240)
+                    st.text_area("Lettre", letter_text, height=240, key="letter_text_preview_tab2")
 
                 pdf_bytes = export_pdf_report(
                     filename="rapport_lettre.pdf",
@@ -749,7 +762,8 @@ with tab_cover:
                     "Télécharger le rapport (PDF)",
                     data=pdf_bytes,
                     file_name="rapport_lettre.pdf",
-                    mime="application/pdf"
+                    mime="application/pdf",
+                    key="download_letter_btn"
                 )
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -764,7 +778,6 @@ with tab_dashboard:
     st.markdown('<div class="ec-title">Dashboard Employabilité – Vue analytique</div>', unsafe_allow_html=True)
     st.markdown('<div class="ec-sub">Données issues de la phase pilote (septembre – octobre 2025).</div>', unsafe_allow_html=True)
 
-    # 🔴 Compteurs dynamiques affichés
     col1, col2, col3, col4 = st.columns(4)
     col1.markdown(f'<div class="kpi-box"><div class="kpi-title">📄 CV analysés</div><div class="kpi-value">{st.session_state.cv_count}</div><div class="kpi-sub">+5 ce mois</div></div>', unsafe_allow_html=True)
     col2.markdown(f'<div class="kpi-box"><div class="kpi-title">💬 Lettres étudiées</div><div class="kpi-value">{st.session_state.letter_count}</div><div class="kpi-sub">+3 ce mois</div></div>', unsafe_allow_html=True)
@@ -773,12 +786,10 @@ with tab_dashboard:
 
     st.divider()
 
-    # Graphique 1 — évolution du score moyen
     st.markdown("### Évolution du score moyen (septembre – octobre)")
     data = pd.DataFrame({"Mois": ["Septembre", "Octobre"], "Score moyen": [72, 74]})
     st.line_chart(data, x="Mois", y="Score moyen", height=240, use_container_width=True)
 
-    # Graphique 2 — Répartition des analyses par domaine
     st.markdown("### Répartition des analyses par domaine")
     domaines = ["Business Analyst", "Data Analyst", "PMO", "Marketing", "Finance", "RH", "Tech / Dev"]
     valeurs = [8, 7, 6, 5, 4, 3, 7]
