@@ -608,7 +608,6 @@ with tab_dashboard:
     .kpi-value { color: #FFFFFF; font-size: 24px; font-weight: 600; }
     .kpi-sub { color: #E00000; font-size: 13px; margin-top: 3px; }
     </style>
-    """, unsafe_allow_html=True)
 
    col1, col2, col3, col4 = st.columns(4)
 col1.markdown('<div class="kpi-box"><div class="kpi-title">📄 CV analysés</div><div class="kpi-value">38</div><div class="kpi-sub">+5 ce mois</div></div>', unsafe_allow_html=True)
