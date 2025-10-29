@@ -611,8 +611,8 @@ with tab_dashboard:
     """, unsafe_allow_html=True)
 
     col1, col2, col3, col4 = st.columns(4)
-    col1.markdown('<div class="kpi-box"><div class="kpi-title">📄 CV analysés</div><div class="kpi-value">38</div><div class="kpi-sub">+5 ce mois</div></div>', unsafe_allow_html=True)
-    col2.markdown('<div class="kpi-box"><div class="kpi-title">💬 Lettres étudiées</div><div class="kpi-value">24</div><div class="kpi-sub">+3 ce mois</div></div>', unsafe_allow_html=True)
+    col1.markdown('<div class="kpi-box"><div class="kpi-title">📄 CV analysés</div><div class="kpi-value">38</div><div class="kpi-sub">+28 ce mois</div></div>', unsafe_allow_html=True)
+    col2.markdown('<div class="kpi-box"><div class="kpi-title">💬 Lettres étudiées</div><div class="kpi-value">24</div><div class="kpi-sub">+12 ce mois</div></div>', unsafe_allow_html=True)
     col3.markdown('<div class="kpi-box"><div class="kpi-title">🎯 Score ATS moyen</div><div class="kpi-value">74/100</div><div class="kpi-sub">+2 pts</div></div>', unsafe_allow_html=True)
     col4.markdown('<div class="kpi-box"><div class="kpi-title">📈 Progression globale</div><div class="kpi-value">+11%</div><div class="kpi-sub">sur 2 mois</div></div>', unsafe_allow_html=True)
 
