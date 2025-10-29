@@ -581,3 +581,74 @@ with tab_interview:
             st.markdown(f"- {q}")
 
         st.info("Conseil : répondre selon STAR (Situation, Tâche, Action, Résultat) et quantifier l’impact.")
+        import matplotlib.pyplot as plt
+import numpy as np
+
+# ---------------
+# TAB DASHBOARD
+# ---------------
+tab_dashboard = st.tabs(["Dashboard"])[0]
+
+with tab_dashboard:
+    st.markdown('<div class="ec-card">', unsafe_allow_html=True)
+    st.markdown('<div class="ec-title">Tableau de bord analytique</div>', unsafe_allow_html=True)
+    st.markdown('<div class="ec-sub">Visualisation des indicateurs clés liés à l’utilisation d’EspritCareers.</div>', unsafe_allow_html=True)
+
+    # --- Indicateurs globaux simulés ---
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("CV analysés", "186", "+12%")
+    col2.metric("Lettres évaluées", "142", "+8%")
+    col3.metric("Entretiens simulés", "95", "+6%")
+    col4.metric("Score moyen global", "78/100")
+
+    # --- Graphique 1 : Scores par domaine ---
+    st.markdown("### Répartition des scores moyens par domaine")
+
+    domaines = ["Business Analyst", "Data Analyst", "PMO", "Marketing", "Finance", "RH", "Dev Python", "Design/UI"]
+    scores = [82, 79, 75, 70, 77, 74, 81, 76]
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.barh(domaines, scores, color="#E00000")
+    ax.set_xlabel("Score moyen (%)")
+    ax.set_xlim(0, 100)
+    ax.invert_yaxis()
+    ax.grid(alpha=0.2)
+    st.pyplot(fig)
+
+    # --- Graphique 2 : Répartition par type d'analyse ---
+    st.markdown("### Répartition par type d’analyse")
+    labels = ["CV", "Lettre", "Entretien"]
+    sizes = [50, 30, 20]
+    colors = ["#E00000", "#444", "#777"]
+
+    fig2, ax2 = plt.subplots(figsize=(3, 3))
+    wedges, texts, autotexts = ax2.pie(
+        sizes, labels=labels, autopct="%1.0f%%", startangle=140,
+        colors=colors, textprops={"color": "white"}
+    )
+    centre_circle = plt.Circle((0, 0), 0.60, fc=BG)
+    fig2.gca().add_artist(centre_circle)
+    ax2.axis("equal")
+    st.pyplot(fig2)
+
+    # --- Graphique 3 : Evolution mensuelle du score moyen ---
+    st.markdown("### Évolution mensuelle du score moyen")
+    months = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sept", "Oct"]
+    evolution = [65, 68, 70, 72, 74, 76, 77, 79, 81, 83]
+
+    fig3, ax3 = plt.subplots(figsize=(8, 3))
+    ax3.plot(months, evolution, marker="o", color="#E00000", linewidth=2)
+    ax3.set_ylim(60, 90)
+    ax3.grid(alpha=0.3)
+    ax3.set_ylabel("Score moyen")
+    st.pyplot(fig3)
+
+    # --- Synthèse ---
+    st.markdown("### Analyse synthétique")
+    st.markdown("""
+    - Les scores les plus élevés sont observés dans les domaines **Business Analyst** et **Développement Python**.  
+    - Une tendance **positive continue** est observée depuis le mois de mars, traduisant une meilleure adoption et qualité des profils.  
+    - Le volume d’analyses reste concentré à **50% sur les CV**, confirmant l’importance de la première impression dans le processus d’employabilité.
+    """)
+    st.markdown('</div>', unsafe_allow_html=True)
+
