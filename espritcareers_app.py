@@ -629,7 +629,7 @@ with tab_dashboard:
     # Graphique 2 — Répartition par domaine
     st.markdown("### Répartition des analyses par domaine")
     domaines = ["Business Analyst", "Data Analyst", "PMO", "Marketing", "Finance", "RH", "Tech / Dev"]
-    valeurs = [34, 28, 24, 18, 17, 15, 26]
+    valeurs = [4, 8, 4, 18, 7, 5, 6]
     df = pd.DataFrame({"Domaine": domaines, "Analyses": valeurs}).set_index("Domaine")
     st.bar_chart(df, height=240, use_container_width=True)
 
