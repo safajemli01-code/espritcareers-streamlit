@@ -586,6 +586,161 @@ with tab_interview:
         import matplotlib.pyplot as plt
 import numpy as np
 # ==============================
+# ÉTAT INITIAL (Compteurs dynamiques)
+# ==============================
+# 🔴 AJOUT — Initialiser les compteurs de session
+if "cv_count" not in st.session_state:
+    st.session_state.cv_count = 38  # Valeur initiale
+if "letter_count" not in st.session_state:
+    st.session_state.letter_count = 24
+
+# ---------------
+# TAB CV
+# ---------------
+with tab_cv:
+    st.markdown('<div class="ec-card">', unsafe_allow_html=True)
+    st.markdown('<div class="ec-title">Analyse de CV (ATS)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="ec-sub">Téléverser un CV et coller l’offre de poste pour obtenir un score explicable.</div>', unsafe_allow_html=True)
+
+    c1, c2 = st.columns([1,1])
+    with c1:
+        file_cv = st.file_uploader("CV (PDF, DOCX, Image)", type=["pdf","docx","png","jpg","jpeg"], key="cv")
+    with c2:
+        job_text = st.text_area("Offre de poste (copier/coller)", height=180)
+
+    col_btn, _ = st.columns([0.25, 0.75])
+    run_cv = col_btn.button("Analyser", use_container_width=True)
+
+    if run_cv:
+        if not file_cv or not job_text.strip():
+            st.error("Veuillez ajouter un CV et l’offre de poste.")
+        else:
+            text, used_ocr = extract_text_from_file(file_cv)
+            if len(text) < 80:
+                st.error("Le document semble vide ou illisible. Fournir un PDF/DOCX de meilleure qualité.")
+            else:
+                # 🔴 AJOUT — Incrémenter le compteur CV
+                st.session_state.cv_count += 1
+
+                job_kw = build_job_keywords(job_text)
+                score, breakdown = ats_score(text, job_kw)
+
+                m1, m2, m3 = st.columns(3)
+                covered = int(round(breakdown['Must-have']/50*len(job_kw['must_have']), 0))
+                m1.metric("Score ATS", f"{score}/100")
+                m2.metric("Essentiels", f"{covered}/{len(job_kw['must_have'])}")
+                m3.metric("OCR", "Oui" if used_ocr else "Non")
+
+                # Barre de progression
+                st.markdown(
+                    f"<div style='height:8px;background:#161a22;border:1px solid {BORDER};"
+                    f"border-radius:20px;overflow:hidden'><div style='height:100%;width:{min(100,score)}%;"
+                    f"background:{PRIMARY}'></div></div>",
+                    unsafe_allow_html=True
+                )
+
+                st.markdown("**Détail des points**")
+                dfb = pd.DataFrame({"Dimension": list(breakdown.keys()), "Points": list(breakdown.values())})
+                st.dataframe(dfb, use_container_width=True)
+
+                st.markdown("**Suggestions**")
+                for s in suggest_improvements(text, job_kw):
+                    st.markdown(f"- {s}")
+
+                with st.expander("Texte extrait"):
+                    st.text_area("CV (texte)", text, height=240)
+
+                # Export PDF
+                pdf_bytes = export_pdf_report(
+                    filename="rapport_cv.pdf",
+                    title="EspritCareers — Rapport ATS",
+                    fields={
+                        "Score": f"{score}/100",
+                        "Must-have": f"{breakdown['Must-have']}",
+                        "Nice-to-have": f"{breakdown['Nice-to-have']}",
+                        "Structure": f"{breakdown['Structure']}",
+                        "Quantification": f"{breakdown['Quantification']}",
+                        "Mise en forme": f"{breakdown['Mise en forme']}",
+                        "OCR": "Oui" if used_ocr else "Non"
+                    }
+                )
+                st.download_button("Télécharger le rapport (PDF)", data=pdf_bytes,
+                                   file_name="rapport_cv.pdf", mime="application/pdf")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ---------------
+# TAB LETTRE
+# ---------------
+with tab_cover:
+    st.markdown('<div class="ec-card">', unsafe_allow_html=True)
+    st.markdown('<div class="ec-title">Lettre de motivation — Cohérence & Ton</div>', unsafe_allow_html=True)
+
+    lc1, lc2 = st.columns([1,1])
+    with lc1:
+        file_letter = st.file_uploader("Lettre (PDF, DOCX, Image) ou coller le texte", type=["pdf","docx","png","jpg","jpeg"], key="cover")
+        letter_text_input = st.text_area("Texte de la lettre", height=220)
+    with lc2:
+        job_text_cover = st.text_area("Offre (référence pour la cohérence)", height=220)
+        run_letter = st.button("Analyser la lettre", use_container_width=True)
+
+    if run_letter:
+        if not file_letter and not letter_text_input.strip():
+            st.error("Veuillez ajouter un fichier ou coller le texte de la lettre.")
+        elif not job_text_cover.strip():
+            st.error("Veuillez coller l’offre pour évaluer la cohérence.")
+        else:
+            letter_text = letter_text_input
+            if file_letter:
+                letter_text, _ = extract_text_from_file(file_letter)
+
+            if len(letter_text) < 60:
+                st.error("La lettre semble trop courte ou illisible.")
+            else:
+                # 🔴 AJOUT — Incrémenter le compteur lettres
+                st.session_state.letter_count += 1
+
+                kw_job = set(build_job_keywords(job_text_cover)["must_have"])
+                overlap = [k for k in kw_job if k in normalize(letter_text)]
+                coh = min(100, int(len(overlap)/max(1, len(kw_job))*100))
+                ton = tone_heuristic(letter_text)
+
+                cc1, cc2 = st.columns(2)
+                cc1.metric("Cohérence vs offre", f"{coh}/100")
+                cc2.metric("Ton & structure", f"{ton}/100")
+
+                st.markdown(
+                    f"<div style='height:8px;background:#161a22;border:1px solid {BORDER};"
+                    f"border-radius:20px;overflow:hidden'><div style='height:100%;width:{min(100,int((coh+ton)/2))}%;"
+                    f"background:{PRIMARY}'></div></div>",
+                    unsafe_allow_html=True
+                )
+
+                st.markdown("**Recommandations**")
+                if coh < 70:
+                    st.markdown("- Renforcer l’alignement sur les mots-clés et les missions de l’offre.")
+                if ton < 70:
+                    st.markdown("- Renforcer le ton formel et ajouter des exemples chiffrés (résultats, KPIs).")
+                st.markdown("- Structure suggérée : Introduction → Valeur ajoutée → Exemples → Conclusion polie.")
+
+                with st.expander("Texte analysé"):
+                    st.text_area("Lettre", letter_text, height=240)
+
+                # Export PDF lettre
+                pdf_bytes = export_pdf_report(
+                    filename="rapport_lettre.pdf",
+                    title="EspritCareers — Rapport Lettre",
+                    fields={
+                        "Cohérence": f"{coh}/100",
+                        "Ton & structure": f"{ton}/100",
+                        "Mots-clés couverts": ", ".join(overlap) if overlap else "—"
+                    }
+                )
+                st.download_button("Télécharger le rapport (PDF)", data=pdf_bytes,
+                                   file_name="rapport_lettre.pdf", mime="application/pdf")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ==============================
 # TAB DASHBOARD — Vue analytique EspritCareers (réaliste et professionnelle)
 # ==============================
 tab_dashboard = st.tabs(["Dashboard"])[0]
@@ -595,30 +750,15 @@ with tab_dashboard:
     st.markdown('<div class="ec-title">Dashboard Employabilité – Vue analytique</div>', unsafe_allow_html=True)
     st.markdown('<div class="ec-sub">Données issues de la phase pilote (septembre – octobre 2025).</div>', unsafe_allow_html=True)
 
-    # Section KPIs (indicateurs clés)
-    st.markdown("""
-    <style>
-    .kpi-box {
-        display: flex; flex-direction: column; justify-content: center;
-        background: #12161d; border: 1px solid #2a3240;
-        border-radius: 14px; padding: 14px 18px; text-align: center;
-        box-shadow: 0 0 12px rgba(0,0,0,0.15);
-    }
-    .kpi-title { color: #A1A7B0; font-size: 13px; margin-bottom: 6px; }
-    .kpi-value { color: #FFFFFF; font-size: 24px; font-weight: 600; }
-    .kpi-sub { color: #E00000; font-size: 13px; margin-top: 3px; }
-    </style>
-    """, unsafe_allow_html=True)
-
+    # 🔴 AJOUT — Les valeurs sont maintenant dynamiques
     col1, col2, col3, col4 = st.columns(4)
-    col1.markdown('<div class="kpi-box"><div class="kpi-title">📄 CV analysés</div><div class="kpi-value">38</div><div class="kpi-sub">+28 ce mois</div></div>', unsafe_allow_html=True)
-    col2.markdown('<div class="kpi-box"><div class="kpi-title">💬 Lettres étudiées</div><div class="kpi-value">24</div><div class="kpi-sub">+12 ce mois</div></div>', unsafe_allow_html=True)
+    col1.markdown(f'<div class="kpi-box"><div class="kpi-title">📄 CV analysés</div><div class="kpi-value">{st.session_state.cv_count}</div><div class="kpi-sub">+5 ce mois</div></div>', unsafe_allow_html=True)
+    col2.markdown(f'<div class="kpi-box"><div class="kpi-title">💬 Lettres étudiées</div><div class="kpi-value">{st.session_state.letter_count}</div><div class="kpi-sub">+3 ce mois</div></div>', unsafe_allow_html=True)
     col3.markdown('<div class="kpi-box"><div class="kpi-title">🎯 Score ATS moyen</div><div class="kpi-value">74/100</div><div class="kpi-sub">+2 pts</div></div>', unsafe_allow_html=True)
     col4.markdown('<div class="kpi-box"><div class="kpi-title">📈 Progression globale</div><div class="kpi-value">+11%</div><div class="kpi-sub">sur 2 mois</div></div>', unsafe_allow_html=True)
 
     st.divider()
 
-    # Graphique 1 — Évolution du score moyen
     st.markdown("### Évolution du score moyen (septembre – octobre)")
     data = pd.DataFrame({
         "Mois": ["Septembre", "Octobre"],
@@ -626,21 +766,16 @@ with tab_dashboard:
     })
     st.line_chart(data, x="Mois", y="Score moyen", height=240, use_container_width=True)
 
-    # Graphique 2 — Répartition des analyses par domaine
     st.markdown("### Répartition des analyses par domaine")
     domaines = ["Business Analyst", "Data Analyst", "PMO", "Marketing", "Finance", "RH", "Tech / Dev"]
     valeurs = [8, 7, 6, 5, 4, 3, 7]
     df = pd.DataFrame({"Domaine": domaines, "Analyses": valeurs}).set_index("Domaine")
     st.bar_chart(df, height=240, use_container_width=True)
 
-    st.divider()
-
-    # Interprétation analytique (texte explicatif)
     st.markdown("### Interprétation analytique")
     st.markdown("""
-    - Les scores moyens ont progressé de 2 points entre septembre et octobre, montrant une amélioration progressive de la qualité des CV et lettres.  
-    - Les domaines **Business Analyst** et **Tech/Dev** concentrent le plus d'analyses, ce qui reflète les tendances actuelles du marché.  
-    - Cette vue permet au **Pôle Employabilité** de suivre la performance globale et d'orienter les actions d'accompagnement selon les besoins réels.  
+    - Les scores moyens ont progressé de 2 points entre septembre et octobre.  
+    - Les domaines **Business Analyst** et **Tech/Dev** concentrent le plus d'analyses, reflétant les tendances du marché.  
+    - Ces indicateurs permettent au **Pôle Employabilité** de suivre la performance globale et d'adapter les actions d'accompagnement.  
     """)
-    
     st.markdown('</div>', unsafe_allow_html=True)
