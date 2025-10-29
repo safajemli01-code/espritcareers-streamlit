@@ -586,16 +586,16 @@ with tab_interview:
         import matplotlib.pyplot as plt
 import numpy as np
 # ==============================
-# TAB DASHBOARD — Vue analytique EspritCareers (améliorée)
+# TAB DASHBOARD — Vue analytique EspritCareers (réaliste et professionnelle)
 # ==============================
 tab_dashboard = st.tabs(["Dashboard"])[0]
 
 with tab_dashboard:
     st.markdown('<div class="ec-card">', unsafe_allow_html=True)
-    st.markdown('<div class="ec-title">Dashboard Employabilité – Insights EspritCareers</div>', unsafe_allow_html=True)
-    st.markdown('<div class="ec-sub">Analyse consolidée des performances observées via la plateforme EspritCareers (période : septembre – octobre).</div>', unsafe_allow_html=True)
+    st.markdown('<div class="ec-title">Dashboard Employabilité – Vue analytique</div>', unsafe_allow_html=True)
+    st.markdown('<div class="ec-sub">Données issues de la phase pilote (septembre – octobre 2025).</div>', unsafe_allow_html=True)
 
-    # Section KPIs (avec style carte)
+    # Section KPIs (indicateurs clés)
     st.markdown("""
     <style>
     .kpi-box {
@@ -608,37 +608,39 @@ with tab_dashboard:
     .kpi-value { color: #FFFFFF; font-size: 24px; font-weight: 600; }
     .kpi-sub { color: #E00000; font-size: 13px; margin-top: 3px; }
     </style>
+    """, unsafe_allow_html=True)
 
-   col1, col2, col3, col4 = st.columns(4)
-col1.markdown('<div class="kpi-box"><div class="kpi-title">📄 CV analysés</div><div class="kpi-value">38</div><div class="kpi-sub">+5 ce mois</div></div>', unsafe_allow_html=True)
-col2.markdown('<div class="kpi-box"><div class="kpi-title">💬 Lettres étudiées</div><div class="kpi-value">24</div><div class="kpi-sub">+3 ce mois</div></div>', unsafe_allow_html=True)
-col3.markdown('<div class="kpi-box"><div class="kpi-title">🎯 Score ATS moyen</div><div class="kpi-value">74/100</div><div class="kpi-sub">+2 pts</div></div>', unsafe_allow_html=True)
-col4.markdown('<div class="kpi-box"><div class="kpi-title">📈 Progression globale</div><div class="kpi-value">+11%</div><div class="kpi-sub">sur 2 mois</div></div>', unsafe_allow_html=True)
+    col1, col2, col3, col4 = st.columns(4)
+    col1.markdown('<div class="kpi-box"><div class="kpi-title">📄 CV analysés</div><div class="kpi-value">38</div><div class="kpi-sub">+5 ce mois</div></div>', unsafe_allow_html=True)
+    col2.markdown('<div class="kpi-box"><div class="kpi-title">💬 Lettres étudiées</div><div class="kpi-value">24</div><div class="kpi-sub">+3 ce mois</div></div>', unsafe_allow_html=True)
+    col3.markdown('<div class="kpi-box"><div class="kpi-title">🎯 Score ATS moyen</div><div class="kpi-value">74/100</div><div class="kpi-sub">+2 pts</div></div>', unsafe_allow_html=True)
+    col4.markdown('<div class="kpi-box"><div class="kpi-title">📈 Progression globale</div><div class="kpi-value">+11%</div><div class="kpi-sub">sur 2 mois</div></div>', unsafe_allow_html=True)
 
     st.divider()
 
-    # Graphique 1 — Évolution du score moyen (réel, septembre-octobre)
+    # Graphique 1 — Évolution du score moyen
     st.markdown("### Évolution du score moyen (septembre – octobre)")
     data = pd.DataFrame({
         "Mois": ["Septembre", "Octobre"],
-        "Score moyen": [76, 81]
+        "Score moyen": [72, 74]
     })
     st.line_chart(data, x="Mois", y="Score moyen", height=240, use_container_width=True)
 
-    # Graphique 2 — Répartition par domaine
+    # Graphique 2 — Répartition des analyses par domaine
     st.markdown("### Répartition des analyses par domaine")
     domaines = ["Business Analyst", "Data Analyst", "PMO", "Marketing", "Finance", "RH", "Tech / Dev"]
-    valeurs = [15, 8, 4, 8, 7, 5, 6]
+    valeurs = [8, 7, 6, 5, 4, 3, 7]
     df = pd.DataFrame({"Domaine": domaines, "Analyses": valeurs}).set_index("Domaine")
     st.bar_chart(df, height=240, use_container_width=True)
 
     st.divider()
 
-    # Section synthèse finale
+    # Interprétation analytique (texte explicatif)
     st.markdown("### Interprétation analytique")
     st.markdown("""
-- Les **domaines Business Analyst et Tech/Dev** concentrent le plus d'analyses, ce qui correspond aux tendances actuelles du marché.  
-- Cette vue permet au **Pôle Employabilité** de suivre la performance globale et d'orienter ses ateliers d'accompagnement en fonction des besoins réels.  
-""")
-
+    - Les scores moyens ont progressé de 2 points entre septembre et octobre, montrant une amélioration progressive de la qualité des CV et lettres.  
+    - Les domaines **Business Analyst** et **Tech/Dev** concentrent le plus d'analyses, ce qui reflète les tendances actuelles du marché.  
+    - Cette vue permet au **Pôle Employabilité** de suivre la performance globale et d'orienter les actions d'accompagnement selon les besoins réels.  
+    """)
+    
     st.markdown('</div>', unsafe_allow_html=True)
