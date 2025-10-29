@@ -637,9 +637,8 @@ col4.markdown('<div class="kpi-box"><div class="kpi-title">📈 Progression glob
     # Section synthèse finale
     st.markdown("### Interprétation analytique")
     st.markdown("""
-    - Les **scores moyens ont progressé de 5 points** entre septembre et octobre, reflétant une amélioration globale de la qualité des CV et lettres.  
-    - Les **domaines Business Analyst et Tech/Dev** concentrent le plus d’analyses, ce qui correspond aux tendances actuelles du marché.  
-    - Cette vue permet au **Pôle Employabilité** de suivre la performance globale et d’orienter ses ateliers d’accompagnement en fonction des besoins réels.  
-    """)
+- Les **domaines Business Analyst et Tech/Dev** concentrent le plus d'analyses, ce qui correspond aux tendances actuelles du marché.  
+- Cette vue permet au **Pôle Employabilité** de suivre la performance globale et d'orienter ses ateliers d'accompagnement en fonction des besoins réels.  
+""")
 
     st.markdown('</div>', unsafe_allow_html=True)
