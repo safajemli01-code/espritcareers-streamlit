@@ -611,9 +611,36 @@ with tab_dashboard:
     """, unsafe_allow_html=True)
 
     col1, col2, col3, col4 = st.columns(4)
-    col1.markdown('<div class="kpi-box"><div class="kpi-title">📄 CV analysés</div><div class="kpi-value">192</div><div class="kpi-sub">+12 ce mois</div>
+    col1.markdown('<div class="kpi-box"><div class="kpi-title">📄 CV analysés</div><div class="kpi-value">192</div><div class="kpi-sub">+12 ce mois</div></div>', unsafe_allow_html=True)
+    col2.markdown('<div class="kpi-box"><div class="kpi-title">💬 Lettres étudiées</div><div class="kpi-value">133</div><div class="kpi-sub">+9 ce mois</div></div>', unsafe_allow_html=True)
+    col3.markdown('<div class="kpi-box"><div class="kpi-title">🎯 Score ATS moyen</div><div class="kpi-value">76/100</div><div class="kpi-sub">+3 pts</div></div>', unsafe_allow_html=True)
+    col4.markdown('<div class="kpi-box"><div class="kpi-title">📈 Progression globale</div><div class="kpi-value">+18%</div><div class="kpi-sub">sur 3 mois</div></div>', unsafe_allow_html=True)
 
+    st.divider()
 
+    # Graphique 1 — Évolution du score moyen (réel, septembre-octobre)
+    st.markdown("### Évolution du score moyen (septembre – octobre)")
+    data = pd.DataFrame({
+        "Mois": ["Septembre", "Octobre"],
+        "Score moyen": [76, 81]
+    })
+    st.line_chart(data, x="Mois", y="Score moyen", height=240, use_container_width=True)
 
+    # Graphique 2 — Répartition par domaine
+    st.markdown("### Répartition des analyses par domaine")
+    domaines = ["Business Analyst", "Data Analyst", "PMO", "Marketing", "Finance", "RH", "Tech / Dev"]
+    valeurs = [34, 28, 24, 18, 17, 15, 26]
+    df = pd.DataFrame({"Domaine": domaines, "Analyses": valeurs}).set_index("Domaine")
+    st.bar_chart(df, height=240, use_container_width=True)
 
+    st.divider()
 
+    # Section synthèse finale
+    st.markdown("### Interprétation analytique")
+    st.markdown("""
+    - Les **scores moyens ont progressé de 5 points** entre septembre et octobre, reflétant une amélioration globale de la qualité des CV et lettres.  
+    - Les **domaines Business Analyst et Tech/Dev** concentrent le plus d’analyses, ce qui correspond aux tendances actuelles du marché.  
+    - Cette vue permet au **Pôle Employabilité** de suivre la performance globale et d’orienter ses ateliers d’accompagnement en fonction des besoins réels.  
+    """)
+
+    st.markdown('</div>', unsafe_allow_html=True)
