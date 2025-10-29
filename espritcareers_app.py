@@ -610,11 +610,11 @@ with tab_dashboard:
     </style>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3, col4 = st.columns(4)
-    col1.markdown('<div class="kpi-box"><div class="kpi-title">📄 CV analysés</div><div class="kpi-value">192</div><div class="kpi-sub">+12 ce mois</div></div>', unsafe_allow_html=True)
-    col2.markdown('<div class="kpi-box"><div class="kpi-title">💬 Lettres étudiées</div><div class="kpi-value">133</div><div class="kpi-sub">+9 ce mois</div></div>', unsafe_allow_html=True)
-    col3.markdown('<div class="kpi-box"><div class="kpi-title">🎯 Score ATS moyen</div><div class="kpi-value">76/100</div><div class="kpi-sub">+3 pts</div></div>', unsafe_allow_html=True)
-    col4.markdown('<div class="kpi-box"><div class="kpi-title">📈 Progression globale</div><div class="kpi-value">+18%</div><div class="kpi-sub">sur 3 mois</div></div>', unsafe_allow_html=True)
+   col1, col2, col3, col4 = st.columns(4)
+col1.markdown('<div class="kpi-box"><div class="kpi-title">📄 CV analysés</div><div class="kpi-value">38</div><div class="kpi-sub">+5 ce mois</div></div>', unsafe_allow_html=True)
+col2.markdown('<div class="kpi-box"><div class="kpi-title">💬 Lettres étudiées</div><div class="kpi-value">24</div><div class="kpi-sub">+3 ce mois</div></div>', unsafe_allow_html=True)
+col3.markdown('<div class="kpi-box"><div class="kpi-title">🎯 Score ATS moyen</div><div class="kpi-value">74/100</div><div class="kpi-sub">+2 pts</div></div>', unsafe_allow_html=True)
+col4.markdown('<div class="kpi-box"><div class="kpi-title">📈 Progression globale</div><div class="kpi-value">+11%</div><div class="kpi-sub">sur 2 mois</div></div>', unsafe_allow_html=True)
 
     st.divider()
 
@@ -629,7 +629,7 @@ with tab_dashboard:
     # Graphique 2 — Répartition par domaine
     st.markdown("### Répartition des analyses par domaine")
     domaines = ["Business Analyst", "Data Analyst", "PMO", "Marketing", "Finance", "RH", "Tech / Dev"]
-    valeurs = [4, 8, 4, 18, 7, 5, 6]
+    valeurs = [15, 8, 4, 8, 7, 5, 6]
     df = pd.DataFrame({"Domaine": domaines, "Analyses": valeurs}).set_index("Domaine")
     st.bar_chart(df, height=240, use_container_width=True)
 
