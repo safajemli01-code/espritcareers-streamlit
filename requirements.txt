@@ -5,3 +5,4 @@ pytesseract
 Pillow
 pandas
 reportlab
+matplotlib
