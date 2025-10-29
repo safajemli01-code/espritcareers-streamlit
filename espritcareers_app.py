@@ -586,65 +586,34 @@ with tab_interview:
         import matplotlib.pyplot as plt
 import numpy as np
 # ==============================
-# TAB DASHBOARD — Vue analytique EspritCareers
+# TAB DASHBOARD — Vue analytique EspritCareers (améliorée)
 # ==============================
 tab_dashboard = st.tabs(["Dashboard"])[0]
 
 with tab_dashboard:
     st.markdown('<div class="ec-card">', unsafe_allow_html=True)
     st.markdown('<div class="ec-title">Dashboard Employabilité – Insights EspritCareers</div>', unsafe_allow_html=True)
-    st.markdown('<div class="ec-sub">Vue analytique des performances et tendances issues des analyses effectuées via la plateforme.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="ec-sub">Analyse consolidée des performances observées via la plateforme EspritCareers (période : septembre – octobre).</div>', unsafe_allow_html=True)
 
-    # Section KPIs (carte horizontale)
-    st.markdown("#### Indicateurs clés")
-    k1, k2, k3, k4 = st.columns(4)
-    k1.metric("📄 CV analysés", "192")
-    k2.metric("💬 Lettres étudiées", "133")
-    k3.metric("🎯 Score ATS moyen", "76/100")
-    k4.metric("📈 Progression globale", "+18% sur 3 mois")
-
-    st.divider()
-
-    # Section 1 : Tendance des scores
-    st.markdown("#### Évolution du score moyen par mois")
-
-    data = pd.DataFrame({
-        "Mois": ["Juin", "Juil", "Août", "Sept", "Oct"],
-        "Score moyen": [67, 70, 74, 78, 81]
-    })
-    st.line_chart(data, x="Mois", y="Score moyen", height=250)
-
-    # Section 2 : Répartition par domaine
-    st.markdown("#### Répartition des analyses par domaine")
-    data_domaines = pd.DataFrame({
-        "Domaine": ["Business Analyst", "Data Analyst", "Marketing", "Finance", "RH", "Tech / Dev"],
-        "Analyses": [34, 28, 20, 18, 15, 25]
-    }).set_index("Domaine")
-    st.bar_chart(data_domaines, height=250)
-
-    # Section 3 : Répartition des axes d'amélioration
-    st.markdown("#### Axes d’amélioration les plus récurrents")
-    st.dataframe(pd.DataFrame({
-        "Axe d'amélioration": [
-            "Quantification des résultats",
-            "Structuration du CV",
-            "Absence de verbes d’action",
-            "Cohérence avec l’offre",
-            "Mots-clés manquants"
-        ],
-        "Fréquence (%)": [32, 27, 21, 12, 8]
-    }), use_container_width=True, height=190)
-
-    st.divider()
-
-    # Section Synthèse narrative
-    st.markdown("### Synthèse analytique")
+    # Section KPIs (avec style carte)
     st.markdown("""
-    - 📊 **Hausse constante** du score moyen depuis juin, traduisant une adoption progressive des recommandations générées.  
-    - 🧠 Les étudiants des filières **Business Analyst** et **Data** affichent les meilleurs niveaux de préparation.  
-    - 💡 Les principales pistes d'amélioration concernent la **quantification des résultats** et la **cohérence avec les offres**.  
-    - 🔁 Ces tendances démontrent l’impact d’EspritCareers sur la **maturation des profils** et la **qualité des candidatures**.  
-    """)
+    <style>
+    .kpi-box {
+        display: flex; flex-direction: column; justify-content: center;
+        background: #12161d; border: 1px solid #2a3240;
+        border-radius: 14px; padding: 14px 18px; text-align: center;
+        box-shadow: 0 0 12px rgba(0,0,0,0.15);
+    }
+    .kpi-title { color: #A1A7B0; font-size: 13px; margin-bottom: 6px; }
+    .kpi-value { color: #FFFFFF; font-size: 24px; font-weight: 600; }
+    .kpi-sub { color: #E00000; font-size: 13px; margin-top: 3px; }
+    </style>
+    """, unsafe_allow_html=True)
 
-    st.markdown('</div>', unsafe_allow_html=True)
+    col1, col2, col3, col4 = st.columns(4)
+    col1.markdown('<div class="kpi-box"><div class="kpi-title">📄 CV analysés</div><div class="kpi-value">192</div><div class="kpi-sub">+12 ce mois</div>
+
+
+
+
 
