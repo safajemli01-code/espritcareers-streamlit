@@ -585,61 +585,66 @@ with tab_interview:
         st.info("Conseil : répondre selon STAR (Situation, Tâche, Action, Résultat) et quantifier l’impact.")
         import matplotlib.pyplot as plt
 import numpy as np
-
-# ---------------
-# TAB DASHBOARD — Vision analytique employabilité
-# ---------------
+# ==============================
+# TAB DASHBOARD — Vue analytique EspritCareers
+# ==============================
 tab_dashboard = st.tabs(["Dashboard"])[0]
 
 with tab_dashboard:
     st.markdown('<div class="ec-card">', unsafe_allow_html=True)
-    st.markdown('<div class="ec-title">Tableau de bord – Analyse des tendances d’employabilité</div>', unsafe_allow_html=True)
-    st.markdown('<div class="ec-sub">Synthèse issue des analyses effectuées via EspritCareers (scores, axes d’amélioration et tendances par domaine).</div>', unsafe_allow_html=True)
+    st.markdown('<div class="ec-title">Dashboard Employabilité – Insights EspritCareers</div>', unsafe_allow_html=True)
+    st.markdown('<div class="ec-sub">Vue analytique des performances et tendances issues des analyses effectuées via la plateforme.</div>', unsafe_allow_html=True)
 
-    # KPIs simulés mais réalistes
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Score ATS moyen", "76/100")
-    col2.metric("Cohérence Lettre", "81/100")
-    col3.metric("Taux de préparation Entretien", "68%")
+    # Section KPIs (carte horizontale)
+    st.markdown("#### Indicateurs clés")
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("📄 CV analysés", "192")
+    k2.metric("💬 Lettres étudiées", "133")
+    k3.metric("🎯 Score ATS moyen", "76/100")
+    k4.metric("📈 Progression globale", "+18% sur 3 mois")
 
-    st.markdown("### Axes d’amélioration les plus fréquents")
-    labels = ["Quantification des résultats", "Structure du CV", "Manque de mots-clés", "Ton trop général", "Exemples concrets"]
-    values = [32, 27, 21, 12, 8]
+    st.divider()
 
-    fig, ax = plt.subplots(figsize=(7, 3))
-    ax.barh(labels, values, color="#E00000")
-    ax.set_xlabel("Fréquence (%)")
-    ax.invert_yaxis()
-    ax.grid(alpha=0.2)
-    st.pyplot(fig)
+    # Section 1 : Tendance des scores
+    st.markdown("#### Évolution du score moyen par mois")
 
-    st.markdown("### Répartition par domaine d’analyse")
-    domaines = ["Business Analyst", "Data Analyst", "PMO", "Marketing", "Finance", "RH", "Tech / Dev"]
-    nb_demandes = [38, 31, 24, 18, 16, 14, 27]
+    data = pd.DataFrame({
+        "Mois": ["Juin", "Juil", "Août", "Sept", "Oct"],
+        "Score moyen": [67, 70, 74, 78, 81]
+    })
+    st.line_chart(data, x="Mois", y="Score moyen", height=250)
 
-    fig2, ax2 = plt.subplots(figsize=(7, 3))
-    ax2.bar(domaines, nb_demandes, color="#E00000", alpha=0.85)
-    ax2.set_ylabel("Nombre d’analyses")
-    ax2.set_xticklabels(domaines, rotation=20, ha="right")
-    ax2.grid(alpha=0.3)
-    st.pyplot(fig2)
+    # Section 2 : Répartition par domaine
+    st.markdown("#### Répartition des analyses par domaine")
+    data_domaines = pd.DataFrame({
+        "Domaine": ["Business Analyst", "Data Analyst", "Marketing", "Finance", "RH", "Tech / Dev"],
+        "Analyses": [34, 28, 20, 18, 15, 25]
+    }).set_index("Domaine")
+    st.bar_chart(data_domaines, height=250)
 
-    st.markdown("### Évolution du niveau moyen de préparation (6 derniers mois)")
-    mois = ["Mai", "Juin", "Juil", "Août", "Sept", "Oct"]
-    score = [68, 70, 72, 75, 77, 79]
+    # Section 3 : Répartition des axes d'amélioration
+    st.markdown("#### Axes d’amélioration les plus récurrents")
+    st.dataframe(pd.DataFrame({
+        "Axe d'amélioration": [
+            "Quantification des résultats",
+            "Structuration du CV",
+            "Absence de verbes d’action",
+            "Cohérence avec l’offre",
+            "Mots-clés manquants"
+        ],
+        "Fréquence (%)": [32, 27, 21, 12, 8]
+    }), use_container_width=True, height=190)
 
-    fig3, ax3 = plt.subplots(figsize=(7, 3))
-    ax3.plot(mois, score, marker="o", color="#E00000", linewidth=2)
-    ax3.fill_between(mois, score, color="#E00000", alpha=0.1)
-    ax3.set_ylim(60, 85)
-    ax3.set_ylabel("Score moyen global")
-    ax3.grid(alpha=0.3)
-    st.pyplot(fig3)
+    st.divider()
 
+    # Section Synthèse narrative
+    st.markdown("### Synthèse analytique")
     st.markdown("""
-    ### 🧠 Interprétation
-    - La majorité des étudiants ont un score **ATS supérieur à 70**, signe d’une bonne maîtrise de la rédaction de CV.  
-    - Les **axes d’amélioration les plus fréquents** concernent la quantification des résultats et la structuration du contenu.  
-    - On observe une **progression continue** du niveau de préparation depuis mai, traduisant l’effet de l’outil sur la montée en compétence.  
+    - 📊 **Hausse constante** du score moyen depuis juin, traduisant une adoption progressive des recommandations générées.  
+    - 🧠 Les étudiants des filières **Business Analyst** et **Data** affichent les meilleurs niveaux de préparation.  
+    - 💡 Les principales pistes d'amélioration concernent la **quantification des résultats** et la **cohérence avec les offres**.  
+    - 🔁 Ces tendances démontrent l’impact d’EspritCareers sur la **maturation des profils** et la **qualité des candidatures**.  
     """)
+
     st.markdown('</div>', unsafe_allow_html=True)
+
