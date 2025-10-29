@@ -8,6 +8,8 @@ import pandas as pd
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import cm
+import matplotlib.pyplot as plt
+import numpy as np
 
 # ================
 # CONFIG GLOBAL
