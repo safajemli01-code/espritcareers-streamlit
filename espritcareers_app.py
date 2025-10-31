@@ -11,9 +11,9 @@ from reportlab.lib.units import cm
 import matplotlib.pyplot as plt
 import numpy as np
 
-# ================
-# CONFIG GLOBAL
-# ================
+# ==============================
+# CONFIG GLOBALE
+# ==============================
 st.set_page_config(
     page_title="EspritCareers",
     layout="wide",
@@ -21,21 +21,20 @@ st.set_page_config(
 )
 
 # Palette sombre "Esprit"
-PRIMARY = "#E00000"     # rouge Esprit
-BG      = "#0B0C10"
-CARD    = "#0F1115"
-BORDER  = "#1F2937"
-TEXT    = "#E8EAED"
-MUTED   = "#A1A7B0"
+PRIMARY = "#E00000"
+BG = "#0B0C10"
+CARD = "#0F1115"
+BORDER = "#1F2937"
+TEXT = "#E8EAED"
+MUTED = "#A1A7B0"
 
-# Google Fonts (Inter)
+# Fonts + CSS
 st.markdown("""
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 """, unsafe_allow_html=True)
 
-# CSS (dark, pro, aligné Esprit)
 st.markdown(f"""
 <style>
 :root {{
@@ -46,82 +45,30 @@ html, body, [class*="css"] {{
   background: var(--bg) !important; color: var(--text);
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
 }}
-/* Header "ruban" oblique rouge façon Esprit */
 .ec-topbar {{
   position: relative; padding: 18px 20px; margin: 0 0 18px 0;
   background: linear-gradient(90deg, rgba(224,0,0,.95) 0%, rgba(224,0,0,.85) 70%, rgba(224,0,0,.65) 100%);
   border-bottom: 1px solid #7a0c0c;
   clip-path: polygon(0 0, 100% 0, 92% 100%, 0 100%);
 }}
-.ec-topbar .brand {{
-  display:flex; align-items:center; gap:14px;
-}}
 .ec-topbar img {{ height:32px; }}
-.ec-topbar .title {{ font-size:18px; font-weight:600; letter-spacing:.2px; }}
-.ec-topbar .subtitle {{ font-size:12px; color:#fff; opacity:.9; margin-top:2px; }}
-
-/* Onglets sobres */
-.stTabs [role="tablist"] {{
-  border-bottom: 1px solid var(--border);
-  gap: 6px; padding: 0 6px;
-}}
-.stTabs [role="tab"] {{
-  color: var(--muted); border: 1px solid var(--border); border-bottom: none;
-  background: #0c0f14; padding: 8px 14px; border-top-left-radius:10px; border-top-right-radius:10px;
-}}
-.stTabs [aria-selected="true"] {{
-  color: #fff; background: #12161d; border-color: #2a3240;
-}}
-
-/* Cartes */
+.ec-title {{ font-size:18px; font-weight:600; margin-bottom:4px; }}
+.ec-sub {{ font-size:13px; color:#ccc; margin-bottom:10px; }}
 .ec-card {{
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 14px; padding: 16px 16px 12px; margin-bottom: 14px;
+  background: var(--card); border:1px solid var(--border);
+  border-radius:14px; padding:16px; margin-bottom:14px;
 }}
-.ec-title {{ font-size: 18px; font-weight: 600; margin-bottom: 6px; }}
-.ec-sub   {{ color: var(--muted); font-size: 13px; margin-bottom: 10px; }}
-
-/* Boutons */
 div.stButton > button:first-child {{
-  background: var(--primary) !important; color:#fff !important; border:0 !important;
-  border-radius: 10px !important; padding:8px 14px !important;
+  background: var(--primary) !important; color:white !important;
+  border:0 !important; border-radius:8px !important; padding:8px 16px !important;
 }}
-
-/* Inputs */
-.stTextInput > div > div > input,
-.stTextArea textarea, .stSelectbox div[data-baseweb="select"] > div {{
-  background:#0e1117 !important; color:#e8eaed !important;
-  border:1px solid var(--border) !important; border-radius:10px !important;
-}}
-
-/* Tables & métriques */
-.stDataFrame, .stTable {{ color: var(--text) !important; }}
 </style>
 """, unsafe_allow_html=True)
 
 # ==============================
-# HEADER (ruban + logo)
+# EN-TÊTE (Logo + texte)
 # ==============================
 st.markdown('<div class="ec-topbar">', unsafe_allow_html=True)
-# ==============================
-# INTRODUCTION — Accueil
-# ==============================
-st.markdown('<div class="ec-card">', unsafe_allow_html=True)
-st.markdown("""
-## Bienvenue sur EspritCareers
-
-**EspritCareers** est une plateforme innovante conçue par le **Pôle Employabilité du Groupe ESPRIT ** pour accompagner les étudiants et jeunes diplômés dans leur parcours professionnel.
-
-Cette solution s’appuie sur l’**intelligence artificielle générative** pour :
-- Analyser et améliorer les **CV** et **lettres de motivation** ;  
-- Offrir une **préparation guidée aux entretiens** selon les domaines visés ;  
-- Fournir un **retour instantané, explicable et orienté vers la progression**.
-
-Notre objectif :  
-**rendre chaque candidature plus claire, plus compétitive et plus alignée avec les attentes du marché**.
-""")
-st.markdown('</div>', unsafe_allow_html=True)
-
 col_logo, col_titles = st.columns([0.1, 0.9])
 with col_logo:
     logo_path = "assets/esprit_logo.png"
@@ -129,17 +76,34 @@ with col_logo:
         try:
             st.image(logo_path, use_container_width=True)
         except Exception:
-            st.write("")  # logo optionnel
+            st.write("")
 with col_titles:
-    st.markdown('<div class="brand"><div class="title">EspritCareers</div></div>', unsafe_allow_html=True)
-    st.markdown('<div class="subtitle">Pôle Employabilité — Analyse de CV, Lettre & Simulation d’entretien</div>', unsafe_allow_html=True)
+    st.markdown('<div class="ec-title">EspritCareers</div>', unsafe_allow_html=True)
+    st.markdown('<div class="ec-sub">Pôle Employabilité — IA & Analyse d’employabilité</div>', unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ==============================
-# HELPERS (extraction & scoring)
+# INTRODUCTION
 # ==============================
+st.markdown('<div class="ec-card">', unsafe_allow_html=True)
+st.markdown("""
+## 🎓 Bienvenue sur EspritCareers
+
+**EspritCareers** est une plateforme développée au sein du **Groupe Esprit** pour accompagner les étudiants et diplômés dans leur employabilité à travers l’**IA générative**.
+
+Cette solution permet :
+- D’analyser et améliorer les **CV** et **lettres de motivation**
+- De simuler des **entretiens personnalisés**
+- D’obtenir un **retour explicable et instantané**
+
+> Objectif : rendre chaque candidature plus claire, plus compétitive et plus alignée avec les besoins du marché.
+""")
+st.markdown('</div>', unsafe_allow_html=True)
+# ==============================
+# FONCTIONS (extraction, scoring, etc.)
+# ==============================
+
 def safe_ocr(image_bytes: bytes, lang: str = "fra+eng") -> str:
-    """OCR robuste: si Tesseract indisponible, retourne chaîne vide sans planter."""
     try:
         img = Image.open(io.BytesIO(image_bytes))
         return pytesseract.image_to_string(img, lang=lang)
@@ -147,7 +111,6 @@ def safe_ocr(image_bytes: bytes, lang: str = "fra+eng") -> str:
         return ""
 
 def extract_text_from_file(uploaded_file):
-    """Retourne (texte, used_ocr: bool). Pas de crash si OCR indispo."""
     name = uploaded_file.name.lower()
     data = uploaded_file.read()
     if name.endswith(".pdf"):
@@ -160,7 +123,8 @@ def extract_text_from_file(uploaded_file):
                     pix = page.get_pixmap(dpi=300)
                     ocr_txt = safe_ocr(pix.tobytes())
                     if ocr_txt:
-                        t = ocr_txt; used_ocr = True
+                        t = ocr_txt
+                        used_ocr = True
                 except Exception:
                     pass
             text_total += ("\n" + (t or ""))
@@ -194,11 +158,7 @@ def build_job_keywords(job_text: str):
     cands = keyword_candidates(job_text, top=30)
     must = cands[:10]
     nice = cands[10:20]
-    return {
-        "must_have": must,
-        "nice_to_have": nice,
-        "weights": {"mh":0.5,"nh":0.2,"struct":0.15,"quant":0.1,"format":0.05}
-    }
+    return {"must_have": must, "nice_to_have": nice}
 
 def keyword_score(cv_text, must_have, nice_to_have):
     t = normalize(cv_text)
@@ -208,30 +168,28 @@ def keyword_score(cv_text, must_have, nice_to_have):
 
 def quantify_score(cv_text):
     nums = re.findall(r"\b\d+(\.\d+)?%?|\b\d{4}\b", cv_text)
-    return min(1.0, len(nums)/8)
+    return min(1.0, len(nums) / 8)
 
 def structure_score(cv_text):
-    sec = ["profil","summary","expérience","experience","formation","education","compétences","skills","projets","projects"]
+    sec = ["profil", "expérience", "formation", "compétences", "projets"]
     t = normalize(cv_text)
     hits = sum(1 for s in sec if s in t)
-    return min(1.0, hits/6)
+    return min(1.0, hits / 6)
 
 def ats_score(cv_text, job_kw):
     mh, nh = job_kw["must_have"], job_kw["nice_to_have"]
-    w = job_kw.get("weights", {"mh":0.5,"nh":0.2,"struct":0.15,"quant":0.1,"format":0.05})
     smh, snh = keyword_score(cv_text, mh, nh)
     sst = structure_score(cv_text)
-    sq  = quantify_score(cv_text)
-    sfo = 1.0  # placeholder
-    total = 100*(w["mh"]*smh + w["nh"]*snh + w["struct"]*sst + w["quant"]*sq + w["format"]*sfo)
+    sq = quantify_score(cv_text)
+    total = 100 * (0.5 * smh + 0.2 * snh + 0.15 * sst + 0.1 * sq + 0.05)
     breakdown = {
-        "Must-have": round(100*w["mh"]*smh,1),
-        "Nice-to-have": round(100*w["nh"]*snh,1),
-        "Structure": round(100*w["struct"]*sst,1),
-        "Quantification": round(100*w["quant"]*sq,1),
-        "Mise en forme": round(100*w["format"]*sfo,1)
+        "Must-have": round(100 * 0.5 * smh, 1),
+        "Nice-to-have": round(100 * 0.2 * snh, 1),
+        "Structure": round(100 * 0.15 * sst, 1),
+        "Quantification": round(100 * 0.1 * sq, 1),
+        "Mise en forme": 5.0,
     }
-    return round(total,1), breakdown
+    return round(total, 1), breakdown
 
 def suggest_improvements(cv_text, job_kw):
     t = normalize(cv_text)
@@ -243,193 +201,126 @@ def suggest_improvements(cv_text, job_kw):
         suggestions.append("Quantifier les réalisations avec des chiffres, % et délais.")
     if structure_score(cv_text) < 0.8:
         suggestions.append("Vérifier les sections : Profil, Expérience, Formation, Compétences, Projets.")
-    suggestions += [
-        "Utiliser des verbes d’action (conçu, déployé, optimisé, automatisé, négocié).",
-        "Résumé 4–5 lignes, orienté résultats et outils."
-    ]
+    suggestions.append("Utiliser des verbes d’action (déployé, optimisé, automatisé, négocié).")
     return suggestions[:5]
 
 def tone_heuristic(letter_text):
     t = letter_text.lower()
-    score_formel = int(any(x in t for x in ["madame","monsieur","candidature","motivation","cordialement"])) * 50
-    score_concret = min(50, len(re.findall(r"\b\d+%?|\b(kpi|roi|budget|projet|deadline)\b", t))*5)
+    score_formel = int(any(x in t for x in ["madame", "monsieur", "cordialement"])) * 50
+    score_concret = min(50, len(re.findall(r"\b\d+%?|\b(kpi|budget|projet)\b", t)) * 5)
     return min(100, score_formel + score_concret)
 
-# ==============================
-# EXPORT PDF (rapport simple)
-# ==============================
 def export_pdf_report(filename: str, title: str, fields: dict):
-    """Génère un PDF texte simple (fiable sur Streamlit Cloud)."""
     path = f"/tmp/{filename}"
     c = canvas.Canvas(path, pagesize=A4)
     width, height = A4
-    x, y = 2*cm, height - 2.5*cm
-    c.setTitle(title)
+    x, y = 2 * cm, height - 2.5 * cm
     c.setFont("Helvetica-Bold", 16)
     c.drawString(x, y, title)
-    y -= 1.0*cm
+    y -= 1 * cm
     c.setFont("Helvetica", 11)
     for k, v in fields.items():
-        line = f"{k}: {v}"
-        for chunk in [line[i:i+95] for i in range(0, len(line), 95)]:
-            c.drawString(x, y, chunk)
-            y -= 0.7*cm
-            if y < 2*cm:
-                c.showPage()
-                y = height - 2.5*cm
-                c.setFont("Helvetica", 11)
-    c.showPage()
+        c.drawString(x, y, f"{k}: {v}")
+        y -= 0.7 * cm
     c.save()
     with open(path, "rb") as f:
         return f.read()
 
 # ==============================
-# UI
+# ONGLET CV
 # ==============================
-tab_cv, tab_cover, tab_interview = st.tabs(["CV", "Lettre", "Entretien"])
+tab_cv, tab_cover = st.tabs(["CV", "Lettre"])
 
-# ---------------
-# TAB CV
-# ---------------
 with tab_cv:
     st.markdown('<div class="ec-card">', unsafe_allow_html=True)
-    st.markdown('<div class="ec-title">Analyse de CV (ATS)</div>', unsafe_allow_html=True)
-    st.markdown('<div class="ec-sub">Téléverser un CV et coller l’offre de poste pour obtenir un score explicable.</div>', unsafe_allow_html=True)
+    st.markdown("### Analyse de CV (ATS)")
+    st.markdown("Téléverser un CV et coller l’offre de poste pour obtenir un score explicable.")
 
-    c1, c2 = st.columns([1,1])
+    c1, c2 = st.columns([1, 1])
     with c1:
-        file_cv = st.file_uploader("CV (PDF, DOCX, Image)", type=["pdf","docx","png","jpg","jpeg"], key="cv")
+        file_cv = st.file_uploader("CV (PDF, DOCX, Image)", type=["pdf", "docx", "png", "jpg"], key="cv_upload")
     with c2:
-        job_text = st.text_area("Offre de poste (copier/coller)", height=180)
+        job_text = st.text_area("Offre de poste (copier/coller)", height=180, key="job_text")
 
-    col_btn, _ = st.columns([0.25, 0.75])
-    run_cv = col_btn.button("Analyser", use_container_width=True)
-
-    if run_cv:
+    if st.button("Analyser le CV", use_container_width=True, key="run_cv"):
         if not file_cv or not job_text.strip():
-            st.error("Veuillez ajouter un CV et l’offre de poste.")
+            st.error("Veuillez ajouter un CV et une offre.")
         else:
             text, used_ocr = extract_text_from_file(file_cv)
             if len(text) < 80:
-                st.error("Le document semble vide ou illisible. Fournir un PDF/DOCX de meilleure qualité.")
+                st.error("Le document semble vide ou illisible.")
             else:
                 job_kw = build_job_keywords(job_text)
                 score, breakdown = ats_score(text, job_kw)
 
-                m1, m2, m3 = st.columns(3)
-                covered = int(round(breakdown['Must-have']/50*len(job_kw['must_have']), 0))
-                m1.metric("Score ATS", f"{score}/100")
-                m2.metric("Essentiels", f"{covered}/{len(job_kw['must_have'])}")
-                m3.metric("OCR", "Oui" if used_ocr else "Non")
+                col1, col2, col3 = st.columns(3)
+                col1.metric("Score ATS", f"{score}/100")
+                col2.metric("Must-have", f"{breakdown['Must-have']}")
+                col3.metric("OCR", "Oui" if used_ocr else "Non")
 
-                # Barre de progression personnalisée
-                st.markdown(
-                    f"<div style='height:8px;background:#161a22;border:1px solid {BORDER};"
-                    f"border-radius:20px;overflow:hidden'><div style='height:100%;width:{min(100,score)}%;"
-                    f"background:{PRIMARY}'></div></div>",
-                    unsafe_allow_html=True
-                )
+                st.progress(score / 100)
 
-                st.markdown("**Détail des points**")
-                dfb = pd.DataFrame({"Dimension": list(breakdown.keys()), "Points": list(breakdown.values())})
-                st.dataframe(dfb, use_container_width=True)
+                st.markdown("#### Détail des points")
+                df = pd.DataFrame({"Dimension": breakdown.keys(), "Points": breakdown.values()})
+                st.dataframe(df, use_container_width=True)
 
-                st.markdown("**Suggestions**")
+                st.markdown("#### Suggestions d’amélioration")
                 for s in suggest_improvements(text, job_kw):
                     st.markdown(f"- {s}")
 
-                with st.expander("Texte extrait"):
-                    st.text_area("CV (texte)", text, height=240)
+                pdf = export_pdf_report("rapport_cv.pdf", "Rapport ATS", {"Score": score})
+                st.download_button("📄 Télécharger le rapport PDF", data=pdf, file_name="rapport_cv.pdf", mime="application/pdf")
 
-                # Export PDF
-                pdf_bytes = export_pdf_report(
-                    filename="rapport_cv.pdf",
-                    title="EspritCareers — Rapport ATS",
-                    fields={
-                        "Score": f"{score}/100",
-                        "Must-have": f"{breakdown['Must-have']}",
-                        "Nice-to-have": f"{breakdown['Nice-to-have']}",
-                        "Structure": f"{breakdown['Structure']}",
-                        "Quantification": f"{breakdown['Quantification']}",
-                        "Mise en forme": f"{breakdown['Mise en forme']}",
-                        "OCR": "Oui" if used_ocr else "Non"
-                    }
-                )
-                st.download_button("Télécharger le rapport (PDF)", data=pdf_bytes,
-                                   file_name="rapport_cv.pdf", mime="application/pdf")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ---------------
-# TAB LETTRE
-# ---------------
+# ==============================
+# ONGLET LETTRE
+# ==============================
 with tab_cover:
     st.markdown('<div class="ec-card">', unsafe_allow_html=True)
-    st.markdown('<div class="ec-title">Lettre de motivation — Cohérence & Ton</div>', unsafe_allow_html=True)
+    st.markdown("### Lettre de motivation — Cohérence & Ton")
 
-    lc1, lc2 = st.columns([1,1])
-    with lc1:
-        file_letter = st.file_uploader("Lettre (PDF, DOCX, Image) ou coller le texte", type=["pdf","docx","png","jpg","jpeg"], key="cover")
-        letter_text_input = st.text_area("Texte de la lettre", height=220)
-    with lc2:
-        job_text_cover = st.text_area("Offre (référence pour la cohérence)", height=220)
-        run_letter = st.button("Analyser la lettre", use_container_width=True)
+    c1, c2 = st.columns([1, 1])
+    with c1:
+        file_letter = st.file_uploader("Lettre (PDF, DOCX, Image)", type=["pdf", "docx", "png", "jpg"], key="letter_upload")
+        letter_text = st.text_area("Texte de la lettre", height=220, key="letter_text")
+    with c2:
+        job_text_cover = st.text_area("Offre de référence", height=220, key="job_text_cover")
 
-    if run_letter:
-        if not file_letter and not letter_text_input.strip():
-            st.error("Veuillez ajouter un fichier ou coller le texte de la lettre.")
+    if st.button("Analyser la lettre", use_container_width=True, key="run_letter"):
+        if not file_letter and not letter_text.strip():
+            st.error("Veuillez fournir la lettre.")
         elif not job_text_cover.strip():
-            st.error("Veuillez coller l’offre pour évaluer la cohérence.")
+            st.error("Veuillez ajouter l’offre.")
         else:
-            letter_text = letter_text_input
             if file_letter:
                 letter_text, _ = extract_text_from_file(file_letter)
 
-            if len(letter_text) < 60:
-                st.error("La lettre semble trop courte ou illisible.")
-            else:
-                kw_job = set(build_job_keywords(job_text_cover)["must_have"])
-                overlap = [k for k in kw_job if k in normalize(letter_text)]
-                coh = min(100, int(len(overlap)/max(1, len(kw_job))*100))
-                ton = tone_heuristic(letter_text)
+            kw_job = set(build_job_keywords(job_text_cover)["must_have"])
+            overlap = [k for k in kw_job if k in normalize(letter_text)]
+            coh = min(100, int(len(overlap) / max(1, len(kw_job)) * 100))
+            ton = tone_heuristic(letter_text)
 
-                cc1, cc2 = st.columns(2)
-                cc1.metric("Cohérence vs offre", f"{coh}/100")
-                cc2.metric("Ton & structure", f"{ton}/100")
+            c1, c2 = st.columns(2)
+            c1.metric("Cohérence", f"{coh}/100")
+            c2.metric("Ton & structure", f"{ton}/100")
 
-                st.markdown(
-                    f"<div style='height:8px;background:#161a22;border:1px solid {BORDER};"
-                    f"border-radius:20px;overflow:hidden'><div style='height:100%;width:{min(100,int((coh+ton)/2))}%;"
-                    f"background:{PRIMARY}'></div></div>",
-                    unsafe_allow_html=True
-                )
+            st.progress((coh + ton) / 200)
 
-                st.markdown("**Recommandations**")
-                if coh < 70:
-                    st.markdown("- Renforcer l’alignement sur les mots-clés et les missions de l’offre.")
-                if ton < 70:
-                    st.markdown("- Renforcer le ton formel et ajouter des exemples chiffrés (résultats, KPIs).")
-                st.markdown("- Structure suggérée : Introduction → Valeur ajoutée → Exemples → Conclusion polie.")
+            st.markdown("#### Recommandations")
+            if coh < 70:
+                st.markdown("- Renforcer l’alignement avec les mots-clés de l’offre.")
+            if ton < 70:
+                st.markdown("- Adopter un ton plus formel et illustrer par des résultats chiffrés.")
 
-                with st.expander("Texte analysé"):
-                    st.text_area("Lettre", letter_text, height=240)
+            pdf = export_pdf_report("rapport_lettre.pdf", "Rapport Lettre", {"Cohérence": coh, "Ton": ton})
+            st.download_button("📄 Télécharger le rapport PDF", data=pdf, file_name="rapport_lettre.pdf", mime="application/pdf")
 
-                # Export PDF lettre
-                pdf_bytes = export_pdf_report(
-                    filename="rapport_lettre.pdf",
-                    title="EspritCareers — Rapport Lettre",
-                    fields={
-                        "Cohérence": f"{coh}/100",
-                        "Ton & structure": f"{ton}/100",
-                        "Mots-clés couverts": ", ".join(overlap) if overlap else "—"
-                    }
-                )
-                st.download_button("Télécharger le rapport (PDF)", data=pdf_bytes,
-                                   file_name="rapport_lettre.pdf", mime="application/pdf")
     st.markdown('</div>', unsafe_allow_html=True)
+# ==============================
+# ONGLET ENTRETIEN
+# ==============================
 
-# ---------------
-# TAB ENTRETIEN
-# ---------------
 QUESTION_BANK = {
     "Business Analyst": {
         "QCM": [
@@ -439,9 +330,9 @@ QUESTION_BANK = {
             ("Quel outil pour cartographier un processus As-Is/To-Be ?", ["SIPOC/BPMN", "Ishikawa", "Pareto"], 0),
         ],
         "OPEN": [
-            "Décrivez un besoin ambigu clarifié et l’impact sur le projet.",
-            "Arbitrage de priorités : démarche et critères.",
-            "Exemple d’analyse ayant conduit à une décision mesurable."
+            "Décrivez un besoin ambigu que vous avez clarifié.",
+            "Expliquez votre approche pour prioriser les exigences.",
+            "Donnez un exemple d’analyse ayant conduit à une décision clé."
         ]
     },
     "Data Analyst": {
@@ -449,25 +340,25 @@ QUESTION_BANK = {
             ("Quel join renvoie uniquement les correspondances ?", ["LEFT JOIN", "INNER JOIN", "FULL OUTER JOIN"], 1),
             ("Mesure de dispersion autour de la moyenne ?", ["Variance", "Médiane", "Mode"], 0),
             ("Graphique conseillé pour série temporelle ?", ["Histogramme", "Courbe", "Secteurs"], 1),
-            ("Test pour comparer deux moyennes ?", ["Chi²", "ANOVA à 1 facteur", "t-test"], 2),
+            ("Test pour comparer deux moyennes ?", ["Chi²", "ANOVA", "t-test"], 2),
         ],
         "OPEN": [
-            "Décrivez un dashboard (KPI, utilisateurs, décisions).",
-            "Traitement des données manquantes et aberrantes.",
-            "Exemple de modélisation simple et validation."
+            "Décrivez un tableau de bord que vous avez conçu.",
+            "Comment traitez-vous les valeurs manquantes ?",
+            "Comment validez-vous un modèle statistique ?"
         ]
     },
     "PMO": {
         "QCM": [
-            ("Objectif principal d’un PMO ?", ["Gouvernance/standardisation", "Vente", "Juridique"], 0),
-            ("Indicateur intégré coût/délai/portée ?", ["RACI", "EVM", "SIPOC"], 1),
+            ("Objectif principal d’un PMO ?", ["Gouvernance", "Vente", "Juridique"], 0),
+            ("Indicateur intégrant coût/délai/portée ?", ["RACI", "EVM", "SIPOC"], 1),
             ("Qui priorise le backlog produit ?", ["Scrum Master", "Product Owner", "Sponsor"], 1),
-            ("Document qui cadre le périmètre initial ?", ["SOW/Charte Projet", "RONI", "RFP"], 0),
+            ("Document cadrant le périmètre initial ?", ["SOW/Charte Projet", "RONI", "RFP"], 0),
         ],
         "OPEN": [
-            "Plan de rattrapage sur projet en dérive (méthode).",
-            "Standardisation des reportings d’un portefeuille.",
-            "Gestion des risques et escalade."
+            "Décrivez une action menée pour rattraper un projet en dérive.",
+            "Comment standardiser les reportings projet ?",
+            "Comment gérez-vous les risques et escalades ?"
         ]
     },
     "Marketing": {
@@ -478,328 +369,83 @@ QUESTION_BANK = {
             ("Expérimentation pour optimiser un funnel ?", ["Test A/B", "Pareto", "PERT"], 0),
         ],
         "OPEN": [
-            "Campagne pilotée et impact mesuré.",
-            "Approche d’A/B test et d’attribution.",
-            "Priorisation des segments et messages."
+            "Décrivez une campagne pilotée et ses résultats.",
+            "Comment mettez-vous en place un A/B test ?",
+            "Comment hiérarchisez-vous vos segments cibles ?"
         ]
     },
-    "Finance": {
-        "QCM": [
-            ("Etat présentant les flux de trésorerie ?", ["Bilan", "Compte de résultat", "Tableau des flux de trésorerie"], 2),
-            ("EBITDA signifie ?", ["Résultat brut d’exploitation", "Résultat net", "Chiffre d’affaires"], 0),
-            ("Indicateur de rentabilité d’investissement ?", ["IRR/TRI", "WACC", "VaR"], 0),
-            ("Ratio de levier ?", ["Debt/EBITDA", "Gross Margin", "Current Ratio"], 0),
-        ],
-        "OPEN": [
-            "Analyse de rentabilité et recommandations.",
-            "Gestion d’un budget sous contrainte.",
-            "Exemple de réduction de coûts mesurable."
-        ]
-    },
-    "Supply Chain": {
-        "QCM": [
-            ("KPI fiabilité de service ?", ["OTIF", "Fill Rate", "Lead Time"], 0),
-            ("Méthode pour réduire gaspillages ?", ["Lean", "PERT", "CPM"], 0),
-            ("But du S&OP ?", ["Aligner demande/offre", "Reporting RH", "Audit qualité"], 0),
-            ("Stock cible calculé par ?", ["EOQ", "NPV", "ARPU"], 0),
-        ],
-        "OPEN": [
-            "Optimisation d’un flux logistique et impact.",
-            "Gestion d’une rupture critique fournisseur.",
-            "Mise en place d’un processus S&OP."
-        ]
-    },
-    "Ressources Humaines": {
-        "QCM": [
-            ("KPI de rétention ?", ["Turnover", "NPS", "ARPU"], 0),
-            ("Document pour objectifs trimestriels ?", ["OKR", "SLA", "MoU"], 0),
-            ("Risque majeur recrutement sans ATS ?", ["Time-to-hire élevé", "CLV bas", "Churn client"], 0),
-            ("Indicateur de performance RH global ?", ["Engagement", "E-NPS", "Tous"], 2),
-        ],
-        "OPEN": [
-            "Onboarding standardisé : étapes clés.",
-            "Améliorer la qualité des recrutements.",
-            "Initiative RH à impact mesurable."
-        ]
-    },
-    "Développeur Python": {
-        "QCM": [
-            ("Type clé/valeur ?", ["list", "dict", "tuple"], 1),
-            ("Structure FIFO ?", ["list", "deque", "set"], 1),
-            ("Outil d’isolation des deps ?", ["virtualenv/venv", "cron", "make"], 0),
-            ("Complexité d’un dict lookup ?", ["O(1) en moyenne", "O(n)", "O(log n)"], 0),
-        ],
-        "OPEN": [
-            "Automatisation réalisée et gains.",
-            "Assurance qualité (tests, linting).",
-            "Optimisation de performance concrète."
-        ]
-    },
-    "Design / UI": {
-        "QCM": [
-            ("Principe pour hiérarchie visuelle ?", ["Gestalt", "DRY", "SOLID"], 0),
-            ("Mesure d’utilisabilité ?", ["SUS", "NPS", "CLV"], 0),
-            ("Pattern pour états de chargement ?", ["Skeleton", "Dropdown", "Modal"], 0),
-        ],
-        "OPEN": [
-            "Processus de design (recherche → prototypage → test).",
-            "Amélioration mesurable d’un parcours.",
-            "Gestion de la cohérence (Design System)."
-        ]
-    }
 }
 
+tab_interview, tab_dashboard = st.tabs(["Entretien", "Dashboard"])
+
+# ==============================
+# SIMULATION D’ENTRETIEN
+# ==============================
 with tab_interview:
     st.markdown('<div class="ec-card">', unsafe_allow_html=True)
-    st.markdown('<div class="ec-title">Simulation d’entretien</div>', unsafe_allow_html=True)
-    colA, colB = st.columns([1,1])
-    with colA:
-        domain = st.selectbox("Domaine", list(QUESTION_BANK.keys()))
-    with colB:
-        level = st.selectbox("Niveau", ["Junior", "Intermédiaire"])
-    add_focus = st.text_input("Focus (mots-clés séparés par des virgules, optionnel)")
+    st.markdown("### Simulation d’entretien")
 
-    gen_btn = st.button("Générer les questions", use_container_width=True)
+    col1, col2 = st.columns(2)
+    with col1:
+        domain = st.selectbox("Domaine", list(QUESTION_BANK.keys()), key="domain_select")
+    with col2:
+        level = st.selectbox("Niveau", ["Junior", "Intermédiaire"], key="level_select")
 
-    if gen_btn:
+    if st.button("Générer les questions", use_container_width=True, key="generate_questions"):
         bank = QUESTION_BANK[domain]
 
-        st.markdown("**QCM**")
-        table_rows = []
-        for i, (q, options, correct_idx) in enumerate(bank["QCM"], start=1):
-            st.write(f"{i}. {q}")
-            choice = st.radio("Réponse", options, key=f"{domain}_qcm_{i}")
-            if st.button(f"Vérifier {i}", key=f"chk_{domain}_{i}"):
-                if options.index(choice) == correct_idx:
-                    st.success("Correct")
+        st.subheader("QCM")
+        for i, (q, options, correct) in enumerate(bank["QCM"], 1):
+            st.markdown(f"**{i}. {q}**")
+            choice = st.radio("Choisissez une réponse :", options, key=f"qcm_{domain}_{i}")
+            if st.button(f"Vérifier {i}", key=f"check_{domain}_{i}"):
+                if options.index(choice) == correct:
+                    st.success("✅ Bonne réponse")
                 else:
-                    st.error(f"Mauvaise réponse. Bonne réponse : {options[correct_idx]}")
-            table_rows.append({"Question": q, "Options": " | ".join(options), "Bonne réponse": options[correct_idx]})
-        if table_rows:
-            st.dataframe(pd.DataFrame(table_rows), use_container_width=True)
+                    st.error(f"❌ Mauvaise réponse. Bonne réponse : **{options[correct]}**")
 
-        st.markdown("**Questions ouvertes (guide)**")
-        for j, q in enumerate(bank["OPEN"], start=1):
+        st.divider()
+        st.subheader("Questions ouvertes")
+        for j, q in enumerate(bank["OPEN"], 1):
             st.markdown(f"- {q}")
 
-        st.info("Conseil : répondre selon STAR (Situation, Tâche, Action, Résultat) et quantifier l’impact.")
-        import matplotlib.pyplot as plt
-import numpy as np
-# ==============================
-# ÉTAT INITIAL — Compteurs dynamiques
-# ==============================
-if "cv_count" not in st.session_state:
-    st.session_state.cv_count = 38  # Valeur réaliste initiale
-if "letter_count" not in st.session_state:
-    st.session_state.letter_count = 24
-
-# ==============================
-# TAB CV — Analyse de CV (ATS)
-# ==============================
-with tab_cv:
-    st.markdown('<div class="ec-card">', unsafe_allow_html=True)
-    st.markdown('<div class="ec-title">Analyse de CV (ATS)</div>', unsafe_allow_html=True)
-    st.markdown('<div class="ec-sub">Téléverser un CV et coller l’offre de poste pour obtenir un score explicable.</div>', unsafe_allow_html=True)
-
-    c1, c2 = st.columns([1, 1])
-    with c1:
-        file_cv = st.file_uploader(
-            "CV (PDF, DOCX, Image)",
-            type=["pdf", "docx", "png", "jpg", "jpeg"],
-            key="cv_upload_tab1"
-        )
-    with c2:
-        job_text = st.text_area(
-            "Offre de poste (copier/coller)",
-            height=180,
-            key="job_text_tab1"
-        )
-
-    col_btn, _ = st.columns([0.25, 0.75])
-    run_cv = col_btn.button("Analyser", use_container_width=True, key="analyze_cv_btn")
-
-    if run_cv:
-        if not file_cv or not job_text.strip():
-            st.error("Veuillez ajouter un CV et l’offre de poste.")
-        else:
-            text, used_ocr = extract_text_from_file(file_cv)
-            if len(text) < 80:
-                st.error("Le document semble vide ou illisible. Fournir un PDF/DOCX de meilleure qualité.")
-            else:
-                # 🔴 Incrémenter le compteur CV
-                st.session_state.cv_count += 1
-
-                job_kw = build_job_keywords(job_text)
-                score, breakdown = ats_score(text, job_kw)
-
-                m1, m2, m3 = st.columns(3)
-                covered = int(round(breakdown['Must-have'] / 50 * len(job_kw['must_have']), 0))
-                m1.metric("Score ATS", f"{score}/100")
-                m2.metric("Essentiels", f"{covered}/{len(job_kw['must_have'])}")
-                m3.metric("OCR", "Oui" if used_ocr else "Non")
-
-                # Barre de progression
-                st.markdown(
-                    f"<div style='height:8px;background:#161a22;border:1px solid {BORDER};"
-                    f"border-radius:20px;overflow:hidden'><div style='height:100%;width:{min(100,score)}%;"
-                    f"background:{PRIMARY}'></div></div>",
-                    unsafe_allow_html=True
-                )
-
-                st.markdown("**Détail des points**")
-                dfb = pd.DataFrame({"Dimension": list(breakdown.keys()), "Points": list(breakdown.values())})
-                st.dataframe(dfb, use_container_width=True)
-
-                st.markdown("**Suggestions**")
-                for s in suggest_improvements(text, job_kw):
-                    st.markdown(f"- {s}")
-
-                with st.expander("Texte extrait"):
-                    st.text_area("CV (texte)", text, height=240, key="cv_text_preview_tab1")
-
-                pdf_bytes = export_pdf_report(
-                    filename="rapport_cv.pdf",
-                    title="EspritCareers — Rapport ATS",
-                    fields={
-                        "Score": f"{score}/100",
-                        "Must-have": f"{breakdown['Must-have']}",
-                        "Nice-to-have": f"{breakdown['Nice-to-have']}",
-                        "Structure": f"{breakdown['Structure']}",
-                        "Quantification": f"{breakdown['Quantification']}",
-                        "Mise en forme": f"{breakdown['Mise en forme']}",
-                        "OCR": "Oui" if used_ocr else "Non"
-                    }
-                )
-                st.download_button(
-                    "Télécharger le rapport (PDF)",
-                    data=pdf_bytes,
-                    file_name="rapport_cv.pdf",
-                    mime="application/pdf",
-                    key="download_cv_btn"
-                )
+        st.info("💡 Conseil : utilisez la méthode **STAR** (Situation, Tâche, Action, Résultat) et illustrez vos réponses par des chiffres.")
     st.markdown('</div>', unsafe_allow_html=True)
 
-
 # ==============================
-# TAB LETTRE — Analyse de lettre de motivation
+# DASHBOARD ANALYTIQUE
 # ==============================
-with tab_cover:
-    st.markdown('<div class="ec-card">', unsafe_allow_html=True)
-    st.markdown('<div class="ec-title">Lettre de motivation — Cohérence & Ton</div>', unsafe_allow_html=True)
-
-    lc1, lc2 = st.columns([1, 1])
-    with lc1:
-        file_letter = st.file_uploader(
-            "Lettre (PDF, DOCX, Image) ou coller le texte",
-            type=["pdf", "docx", "png", "jpg", "jpeg"],
-            key="letter_upload_tab2"
-        )
-        letter_text_input = st.text_area(
-            "Texte de la lettre",
-            height=220,
-            key="letter_text_tab2"
-        )
-    with lc2:
-        job_text_cover = st.text_area(
-            "Offre (référence pour la cohérence)",
-            height=220,
-            key="job_text_tab2"
-        )
-        run_letter = st.button("Analyser la lettre", use_container_width=True, key="analyze_letter_btn")
-
-    if run_letter:
-        if not file_letter and not letter_text_input.strip():
-            st.error("Veuillez ajouter un fichier ou coller le texte de la lettre.")
-        elif not job_text_cover.strip():
-            st.error("Veuillez coller l’offre pour évaluer la cohérence.")
-        else:
-            letter_text = letter_text_input
-            if file_letter:
-                letter_text, _ = extract_text_from_file(file_letter)
-
-            if len(letter_text) < 60:
-                st.error("La lettre semble trop courte ou illisible.")
-            else:
-                # 🔴 Incrémenter le compteur lettres
-                st.session_state.letter_count += 1
-
-                kw_job = set(build_job_keywords(job_text_cover)["must_have"])
-                overlap = [k for k in kw_job if k in normalize(letter_text)]
-                coh = min(100, int(len(overlap) / max(1, len(kw_job)) * 100))
-                ton = tone_heuristic(letter_text)
-
-                cc1, cc2 = st.columns(2)
-                cc1.metric("Cohérence vs offre", f"{coh}/100")
-                cc2.metric("Ton & structure", f"{ton}/100")
-
-                st.markdown(
-                    f"<div style='height:8px;background:#161a22;border:1px solid {BORDER};"
-                    f"border-radius:20px;overflow:hidden'><div style='height:100%;width:{min(100, int((coh + ton)/2))}%;"
-                    f"background:{PRIMARY}'></div></div>",
-                    unsafe_allow_html=True
-                )
-
-                st.markdown("**Recommandations**")
-                if coh < 70:
-                    st.markdown("- Renforcer l’alignement sur les mots-clés et les missions de l’offre.")
-                if ton < 70:
-                    st.markdown("- Adopter un ton plus formel et inclure des exemples chiffrés (résultats, KPIs).")
-                st.markdown("- Structure suggérée : Introduction → Valeur ajoutée → Exemples → Conclusion polie.")
-
-                with st.expander("Texte analysé"):
-                    st.text_area("Lettre", letter_text, height=240, key="letter_text_preview_tab2")
-
-                pdf_bytes = export_pdf_report(
-                    filename="rapport_lettre.pdf",
-                    title="EspritCareers — Rapport Lettre",
-                    fields={
-                        "Cohérence": f"{coh}/100",
-                        "Ton & structure": f"{ton}/100",
-                        "Mots-clés couverts": ", ".join(overlap) if overlap else "—"
-                    }
-                )
-                st.download_button(
-                    "Télécharger le rapport (PDF)",
-                    data=pdf_bytes,
-                    file_name="rapport_lettre.pdf",
-                    mime="application/pdf",
-                    key="download_letter_btn"
-                )
-    st.markdown('</div>', unsafe_allow_html=True)
-
-
-# ==============================
-# TAB DASHBOARD — Vue analytique EspritCareers
-# ==============================
-tab_dashboard = st.tabs(["Dashboard"])[0]
-
 with tab_dashboard:
     st.markdown('<div class="ec-card">', unsafe_allow_html=True)
-    st.markdown('<div class="ec-title">Dashboard Employabilité – Vue analytique</div>', unsafe_allow_html=True)
-    st.markdown('<div class="ec-sub">Données issues de la phase pilote (septembre – octobre 2025).</div>', unsafe_allow_html=True)
+    st.markdown("### Dashboard Employabilité – Vue analytique")
+    st.markdown('<div class="ec-sub">Données issues de la phase pilote (septembre – octobre 2025)</div>', unsafe_allow_html=True)
+
+    if "cv_count" not in st.session_state:
+        st.session_state.cv_count = 38
+    if "letter_count" not in st.session_state:
+        st.session_state.letter_count = 24
 
     col1, col2, col3, col4 = st.columns(4)
-    col1.markdown(f'<div class="kpi-box"><div class="kpi-title">📄 CV analysés</div><div class="kpi-value">{st.session_state.cv_count}</div><div class="kpi-sub">+20 ce mois</div></div>', unsafe_allow_html=True)
-    col2.markdown(f'<div class="kpi-box"><div class="kpi-title">💬 Lettres étudiées</div><div class="kpi-value">{st.session_state.letter_count}</div><div class="kpi-sub">+12 ce mois</div></div>', unsafe_allow_html=True)
-    col3.markdown('<div class="kpi-box"><div class="kpi-title">🎯 Score ATS moyen</div><div class="kpi-value">74/100</div><div class="kpi-sub">+2 pts</div></div>', unsafe_allow_html=True)
-    col4.markdown('<div class="kpi-box"><div class="kpi-title">📈 Progression globale</div><div class="kpi-value">+11%</div><div class="kpi-sub">sur 2 mois</div></div>', unsafe_allow_html=True)
+    col1.metric("📄 CV analysés", st.session_state.cv_count, "+8 ce mois")
+    col2.metric("💬 Lettres étudiées", st.session_state.letter_count, "+5 ce mois")
+    col3.metric("🎯 Score ATS moyen", "74/100", "+2 pts")
+    col4.metric("📈 Progression globale", "+11%", "sur 2 mois")
 
     st.divider()
+    st.markdown("#### Évolution du score moyen (septembre – octobre)")
+    df_score = pd.DataFrame({"Mois": ["Septembre", "Octobre"], "Score moyen": [72, 74]})
+    st.line_chart(df_score, x="Mois", y="Score moyen", height=260, use_container_width=True)
 
-    st.markdown("### Évolution du score moyen (septembre – octobre)")
-    data = pd.DataFrame({"Mois": ["Septembre", "Octobre"], "Score moyen": [72, 74]})
-    st.line_chart(data, x="Mois", y="Score moyen", height=240, use_container_width=True)
-
-    st.markdown("### Répartition des analyses par domaine")
+    st.markdown("#### Répartition des analyses par domaine")
     domaines = ["Business Analyst", "Data Analyst", "PMO", "Marketing", "Finance", "RH", "Tech / Dev"]
     valeurs = [8, 7, 6, 5, 4, 3, 7]
-    df = pd.DataFrame({"Domaine": domaines, "Analyses": valeurs}).set_index("Domaine")
-    st.bar_chart(df, height=240, use_container_width=True)
+    df_domaine = pd.DataFrame({"Domaine": domaines, "Analyses": valeurs}).set_index("Domaine")
+    st.bar_chart(df_domaine, height=260, use_container_width=True)
 
-    st.markdown("### Interprétation analytique")
+    st.markdown("#### Interprétation analytique")
     st.markdown("""
-    - Les scores moyens ont progressé de 2 points entre septembre et octobre.  
-    - Les domaines **Business Analyst** et **Tech/Dev** concentrent le plus d'analyses, reflétant la tendance du marché.  
-    - Ces indicateurs permettent au **Pôle Employabilité** de suivre les performances et d’ajuster les actions d’accompagnement.  
+    - Les scores moyens ont progressé de **+2 points** entre septembre et octobre.  
+    - Les domaines **Business Analyst** et **Tech / Dev** concentrent le plus d’analyses.  
+    - Ces indicateurs permettent au **Pôle Employabilité** d’ajuster ses actions d’accompagnement.  
     """)
     st.markdown('</div>', unsafe_allow_html=True)
