@@ -537,33 +537,27 @@ with tab_interview:
         st.session_state.open_answers = {}
 
     # --- QCM ---
-    st.markdown("### QCM")
-    for i, (q, options, correct_idx) in enumerate(bank["QCM"], start=1):
-        st.write(f"{i}. {q}")
+st.markdown("### QCM")
+for i, (q, options, correct_idx) in enumerate(bank["QCM"], start=1):
+    st.write(f"{i}. {q}")
 
-        key_radio = f"{domain}_qcm_{i}"
-        if key_radio not in st.session_state:
-            st.session_state[key_radio] = None
+    key_radio = f"{domain}_qcm_{i}"
 
-        choice = st.radio(
-            "Réponse",
-            options,
-            index=0 if st.session_state[key_radio] is None else options.index(st.session_state[key_radio]),
-            key=key_radio
-        )
-        st.session_state[key_radio] = choice  # sauvegarde du choix
+    choice = st.radio(
+        "Réponse",
+        options,
+        index=0 if key_radio not in st.session_state or st.session_state[key_radio] is None
+              else options.index(st.session_state[key_radio]),
+        key=key_radio
+    )
 
-        key_btn = f"chk_{domain}_{i}"
-        if st.button(f"Vérifier {i}", key=key_btn):
-            if options.index(choice) == correct_idx:
-                st.success("✅ Correct")
-                st.session_state.qcm_score += 1
-            else:
-                st.error(f"Mauvaise réponse. Bonne réponse : {options[correct_idx]}")
-
-    total_qcm = len(bank["QCM"])
-    st.metric("Score QCM actuel", f"{st.session_state.qcm_score}/{total_qcm}")
-
+    key_btn = f"chk_{domain}_{i}"
+    if st.button(f"Vérifier {i}", key=key_btn):
+        # --- vérification ---
+        if options.index(choice) == correct_idx:
+            st.success("✅ Correct")
+        else:
+            st.error(f"Mauvaise réponse. Bonne réponse : {options[correct_idx]}")
     # --- Questions ouvertes (guide STAR) ---
     st.markdown("### Questions ouvertes (guide STAR)")
     for j, q in enumerate(bank["OPEN"], start=1):
