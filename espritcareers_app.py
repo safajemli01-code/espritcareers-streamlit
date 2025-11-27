@@ -435,21 +435,12 @@ with tab_cover:
 # MODULE ENTRETIEN OPTIMISÉ – STABLE
 # ==============================
 import random
+import streamlit as st
 
-# Interface Streamlit
-with tab_interview:
-    st.markdown('<div class="ec-card">', unsafe_allow_html=True)
-    st.markdown('<div class="ec-title">Simulation d’entretien — Optimisé</div>', unsafe_allow_html=True)
-
-    # Sélection domaine et niveau
-    colA, colB = st.columns([1, 1])
-    with colA:
-        domain = st.selectbox("Domaine", list(QUESTION_BANK.keys()))
-    with colB:
-        level = st.selectbox("Niveau", ["Junior", "Intermédiaire", "Senior"])
-
-    # Récupération de la banque de questions
-    bank =  QUESTION_BANK = {
+# ------------------------------
+# BANQUE DE QUESTIONS
+# ------------------------------
+QUESTION_BANK = {
     "Business Analyst": {
         "QCM": [
             ("Quel livrable formalise les exigences fonctionnelles ?", ["SLA", "BRD", "SOW"], 1),
@@ -522,6 +513,23 @@ with tab_interview:
     }
 }
 
+# ------------------------------
+# INTERFACE STREAMLIT
+# ------------------------------
+with tab_interview:
+    st.markdown('<div class="ec-card">', unsafe_allow_html=True)
+    st.markdown('<div class="ec-title">Simulation d’entretien — Optimisé</div>', unsafe_allow_html=True)
+
+    # Sélection domaine et niveau
+    colA, colB = st.columns([1, 1])
+    with colA:
+        domain = st.selectbox("Domaine", list(QUESTION_BANK.keys()))
+    with colB:
+        level = st.selectbox("Niveau", ["Junior", "Intermédiaire", "Senior"])
+
+    # Récupération de la banque de questions pour le domaine sélectionné
+    bank = QUESTION_BANK[domain]
+
     # Initialisation des scores et réponses si non existant
     if "qcm_score" not in st.session_state:
         st.session_state.qcm_score = 0
@@ -530,7 +538,6 @@ with tab_interview:
 
     # --- QCM ---
     st.markdown("### QCM")
-    qcm_score = 0
     for i, (q, options, correct_idx) in enumerate(bank["QCM"], start=1):
         st.write(f"{i}. {q}")
 
@@ -563,7 +570,12 @@ with tab_interview:
         key_open = f"{domain}_open_{j}"
         if key_open not in st.session_state:
             st.session_state.open_answers[key_open] = ""
-        ans = st.text_area(f"{j}. {q}", value=st.session_state.open_answers.get(key_open, ""), key=key_open, height=100)
+        ans = st.text_area(
+            f"{j}. {q}",
+            value=st.session_state.open_answers.get(key_open, ""),
+            key=key_open,
+            height=100
+        )
         st.session_state.open_answers[key_open] = ans  # sauvegarde de la réponse
         if ans.strip():
             st.info(
