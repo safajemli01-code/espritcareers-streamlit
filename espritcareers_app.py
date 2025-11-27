@@ -434,123 +434,126 @@ with tab_cover:
 
 
 # ==============================
-# MODULE ENTRETIEN OPTIMISÉ
+# MODULE ENTRETIEN — VERSION PROFESSIONNELLE
 # ==============================
-import random
+import io
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import cm
 
-# Base de questions par domaine
-QUESTION_BANK = {
-    "Business Analyst": {
-        "QCM": [
-            ("Quel livrable formalise les exigences fonctionnelles ?", ["SLA", "BRD", "SOW"], 1),
-            ("Quel diagramme modélise les interactions utilisateur-système ?", ["Use Case UML", "PERT", "Gantt"], 0),
-        ],
-        "OPEN": [
-            "Décrivez un besoin ambigu clarifié et l’impact sur le projet.",
-            "Exemple d’analyse ayant conduit à une décision mesurable."
-        ]
-    },
-    "Data Analyst": {
-        "QCM": [
-            ("Quel join renvoie uniquement les correspondances ?", ["LEFT JOIN", "INNER JOIN", "FULL OUTER JOIN"], 1),
-            ("Mesure de dispersion autour de la moyenne ?", ["Variance", "Médiane", "Mode"], 0),
-        ],
-        "OPEN": [
-            "Décrivez un dashboard (KPI, utilisateurs, décisions).",
-            "Traitement des données manquantes et aberrantes."
-        ]
-    },
-    "RH": {
-        "QCM": [
-            ("Quel outil permet de gérer les performances des employés ?", ["ERP", "SIRH", "CRM"], 1),
-            ("Quelle étape est cruciale pour le recrutement ?", ["Tri CV", "Briefing", "Onboarding"], 2),
-        ],
-        "OPEN": [
-            "Comment gérer un conflit entre collègues ?",
-            "Exemple d’entretien d’évaluation réussi."
-        ]
-    },
-    "Finance": {
-        "QCM": [
-            ("Quel indicateur mesure la rentabilité ?", ["ROI", "KPI", "OKR"], 0),
-            ("Document obligatoire pour bilan ?", ["Compte de résultat", "Rapport projet", "Plan marketing"], 0),
-        ],
-        "OPEN": [
-            "Décrivez une analyse financière ayant amélioré la marge.",
-            "Comment prioriser les investissements d’un projet ?"
-        ]
-    },
-    "Management": {
-        "QCM": [
-            ("Méthode pour gérer projet Agile ?", ["Scrum", "Waterfall", "Lean"], 0),
-            ("Indicateur de performance équipe ?", ["KPI", "Budget", "ROI"], 0),
-        ],
-        "OPEN": [
-            "Exemple de décision stratégique prise avec données limitées.",
-            "Comment motiver une équipe en difficulté ?"
-        ]
-    },
-    "Marketing": {
-        "QCM": [
-            ("Qu’est-ce qu’un KPI marketing ?", ["Indicateur clé", "Budget", "Diagramme"], 0),
-            ("Outil pour analyse de marché ?", ["Google Analytics", "ERP", "Git"], 0),
-        ],
-        "OPEN": [
-            "Donnez un exemple de campagne efficace.",
-            "Comment mesurer le ROI d’une campagne marketing ?"
-        ]
-    },
-    "Comptabilité": {
-        "QCM": [
-            ("Document obligatoire pour TVA ?", ["Facture", "BRD", "SOW"], 0),
-            ("Méthode comptable standard ?", ["LIFO", "SCRUM", "KPI"], 0),
-        ],
-        "OPEN": [
-            "Comment corriger une erreur de journal comptable ?",
-            "Exemple d’optimisation fiscale légale."
-        ]
-    }
-}
+def generate_interview_pdf(domain, level, qcm_results, open_answers):
+    """
+    Crée un rapport PDF pour l'entretien.
+    """
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    x, y = 2*cm, height - 2.5*cm
 
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(x, y, f"EspritCareers — Rapport Entretien ({domain})")
+    y -= 1*cm
+    c.setFont("Helvetica", 12)
+    c.drawString(x, y, f"Niveau : {level}")
+    y -= 1*cm
+
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(x, y, "QCM")
+    y -= 0.8*cm
+    for i, (q, selected, correct) in enumerate(qcm_results, start=1):
+        line = f"{i}. {q}\nRéponse donnée : {selected}\nBonne réponse : {correct}\n"
+        for chunk in line.split("\n"):
+            c.drawString(x, y, chunk)
+            y -= 0.6*cm
+            if y < 2*cm:
+                c.showPage()
+                y = height - 2.5*cm
+
+    y -= 0.5*cm
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(x, y, "Questions ouvertes (guide STAR)")
+    y -= 0.8*cm
+    for i, (q, ans) in enumerate(open_answers, start=1):
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(x, y, f"{i}. {q}")
+        y -= 0.5*cm
+        c.setFont("Helvetica", 11)
+        for chunk in ans.split("\n"):
+            c.drawString(x, y, f"Réponse : {chunk}")
+            y -= 0.5*cm
+            if y < 2*cm:
+                c.showPage()
+                y = height - 2.5*cm
+        y -= 0.3*cm
+
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+    return buffer.read()
+
+# ======================================
 # Interface Streamlit
+# ======================================
 with tab_interview:
     st.markdown('<div class="ec-card">', unsafe_allow_html=True)
-    st.markdown('<div class="ec-title">Simulation d’entretien — Optimisé</div>', unsafe_allow_html=True)
+    st.markdown('<div class="ec-title">Simulation d’entretien — Professionnelle</div>', unsafe_allow_html=True)
 
-    colA, colB = st.columns([1, 1])
+    colA, colB = st.columns([1,1])
     with colA:
         domain = st.selectbox("Domaine", list(QUESTION_BANK.keys()))
     with colB:
         level = st.selectbox("Niveau", ["Junior", "Intermédiaire", "Senior"])
-    
+
     add_focus = st.text_input("Focus (mots-clés séparés par des virgules, optionnel)")
 
-    if st.button("Générer les questions", use_container_width=True):
+    if st.button("Générer l’entretien", use_container_width=True):
         bank = QUESTION_BANK[domain]
 
         st.markdown("### QCM")
         qcm_score = 0
+        qcm_results = []
         for i, (q, options, correct_idx) in enumerate(bank["QCM"], start=1):
             st.write(f"{i}. {q}")
-            choice = st.radio("Réponse", options, key=f"{domain}_qcm_{i}")
-            if st.button(f"Vérifier {i}", key=f"chk_{domain}_{i}"):
-                if options.index(choice) == correct_idx:
-                    st.success("✅ Correct")
-                    qcm_score += 1
-                else:
-                    st.error(f"Mauvaise réponse. Bonne réponse : {options[correct_idx]}")
-        
+            selected = st.radio("Réponse", options, key=f"{domain}_qcm_{i}")
+            correct = options[correct_idx]
+            if selected == correct:
+                st.success("✅ Correct")
+                qcm_score += 1
+            else:
+                st.error(f"Mauvaise réponse. Bonne réponse : {correct}")
+            qcm_results.append((q, selected, correct))
+
         st.markdown("### Questions ouvertes (guide STAR)")
-        star_feedback = []
+        open_answers = []
         for j, q in enumerate(bank["OPEN"], start=1):
             ans = st.text_area(f"{j}. {q}", key=f"{domain}_open_{j}", height=100)
             if ans.strip():
-                st.info(f"Conseil STAR pour cette réponse :\n- Situation : décrivez le contexte\n- Tâche : expliquez votre rôle\n- Action : détaillez vos actions\n- Résultat : quantifiez l’impact")
-                star_feedback.append(f"Question {j} : {q}")
+                st.info("- Situation : contexte\n- Tâche : rôle\n- Action : actions\n- Résultat : impact")
+            open_answers.append((q, ans or "—"))
 
-        st.markdown("### Résumé et Score")
+        # Score global
         total_qcm = len(bank["QCM"])
+        star_score = min(10, len([a for _,a in open_answers if a.strip()]))  # STAR score simplifié
+        global_score = round((qcm_score/total_qcm*70 + star_score/10*30),1)  # QCM 70%, STAR 30%
+
+        st.markdown("### Résumé & Score global")
         st.metric("Score QCM", f"{qcm_score}/{total_qcm}")
-        st.markdown(f"Réponses ouvertes : {len(star_feedback)} questions guidées via STAR.")
-    
+        st.metric("Score STAR", f"{star_score}/10")
+        st.metric("Score global", f"{global_score}/100")
+
+        # Barre de progression
+        st.markdown(
+            f"<div style='height:12px;background:#161a22;border:1px solid {BORDER};border-radius:20px;overflow:hidden'>"
+            f"<div style='height:100%;width:{min(100, global_score)}%;background:{PRIMARY}'></div></div>",
+            unsafe_allow_html=True
+        )
+
+        # Export PDF
+        pdf_bytes = generate_interview_pdf(domain, level, qcm_results, open_answers)
+        st.download_button(
+            "Télécharger le rapport complet (PDF)",
+            data=pdf_bytes,
+            file_name=f"rapport_entretien_{domain}.pdf",
+            mime="application/pdf"
+        )
     st.markdown('</div>', unsafe_allow_html=True)
