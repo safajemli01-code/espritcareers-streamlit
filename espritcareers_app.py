@@ -522,8 +522,6 @@ with tab_interview:
         domain = st.selectbox("Domaine", list(QUESTION_BANK.keys()))
     with colB:
         level = st.selectbox("Niveau", ["Junior", "Intermédiaire", "Senior"])
-    
-    add_focus = st.text_input("Focus (mots-clés séparés par des virgules, optionnel)")
 
     if st.button("Générer les questions", use_container_width=True):
         bank = QUESTION_BANK[domain]
@@ -563,5 +561,3 @@ with tab_interview:
         st.markdown(f"Réponses ouvertes : {len(star_feedback)} questions guidées via STAR.")
     
     st.markdown('</div>', unsafe_allow_html=True)
-
-
