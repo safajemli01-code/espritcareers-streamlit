@@ -434,19 +434,19 @@ with tab_cover:
 
 
 # ==============================
-# TAB ENTRETIEN — Simulation
+# MODULE ENTRETIEN OPTIMISÉ
 # ==============================
+import random
+
+# Base de questions par domaine
 QUESTION_BANK = {
     "Business Analyst": {
         "QCM": [
             ("Quel livrable formalise les exigences fonctionnelles ?", ["SLA", "BRD", "SOW"], 1),
             ("Quel diagramme modélise les interactions utilisateur-système ?", ["Use Case UML", "PERT", "Gantt"], 0),
-            ("Quel artefact capture l’acceptation d’une user story ?", ["Definition of Ready", "Critères d’acceptation", "Charte Projet"], 1),
-            ("Quel outil pour cartographier un processus As-Is/To-Be ?", ["SIPOC/BPMN", "Ishikawa", "Pareto"], 0),
         ],
         "OPEN": [
             "Décrivez un besoin ambigu clarifié et l’impact sur le projet.",
-            "Arbitrage de priorités : démarche et critères.",
             "Exemple d’analyse ayant conduit à une décision mesurable."
         ]
     },
@@ -454,101 +454,103 @@ QUESTION_BANK = {
         "QCM": [
             ("Quel join renvoie uniquement les correspondances ?", ["LEFT JOIN", "INNER JOIN", "FULL OUTER JOIN"], 1),
             ("Mesure de dispersion autour de la moyenne ?", ["Variance", "Médiane", "Mode"], 0),
-            ("Graphique conseillé pour série temporelle ?", ["Histogramme", "Courbe", "Secteurs"], 1),
-            ("Test pour comparer deux moyennes ?", ["Chi²", "ANOVA à 1 facteur", "t-test"], 2),
         ],
         "OPEN": [
             "Décrivez un dashboard (KPI, utilisateurs, décisions).",
-            "Traitement des données manquantes et aberrantes.",
-            "Exemple de modélisation simple et validation."
+            "Traitement des données manquantes et aberrantes."
+        ]
+    },
+    "RH": {
+        "QCM": [
+            ("Quel outil permet de gérer les performances des employés ?", ["ERP", "SIRH", "CRM"], 1),
+            ("Quelle étape est cruciale pour le recrutement ?", ["Tri CV", "Briefing", "Onboarding"], 2),
+        ],
+        "OPEN": [
+            "Comment gérer un conflit entre collègues ?",
+            "Exemple d’entretien d’évaluation réussi."
+        ]
+    },
+    "Finance": {
+        "QCM": [
+            ("Quel indicateur mesure la rentabilité ?", ["ROI", "KPI", "OKR"], 0),
+            ("Document obligatoire pour bilan ?", ["Compte de résultat", "Rapport projet", "Plan marketing"], 0),
+        ],
+        "OPEN": [
+            "Décrivez une analyse financière ayant amélioré la marge.",
+            "Comment prioriser les investissements d’un projet ?"
+        ]
+    },
+    "Management": {
+        "QCM": [
+            ("Méthode pour gérer projet Agile ?", ["Scrum", "Waterfall", "Lean"], 0),
+            ("Indicateur de performance équipe ?", ["KPI", "Budget", "ROI"], 0),
+        ],
+        "OPEN": [
+            "Exemple de décision stratégique prise avec données limitées.",
+            "Comment motiver une équipe en difficulté ?"
+        ]
+    },
+    "Marketing": {
+        "QCM": [
+            ("Qu’est-ce qu’un KPI marketing ?", ["Indicateur clé", "Budget", "Diagramme"], 0),
+            ("Outil pour analyse de marché ?", ["Google Analytics", "ERP", "Git"], 0),
+        ],
+        "OPEN": [
+            "Donnez un exemple de campagne efficace.",
+            "Comment mesurer le ROI d’une campagne marketing ?"
+        ]
+    },
+    "Comptabilité": {
+        "QCM": [
+            ("Document obligatoire pour TVA ?", ["Facture", "BRD", "SOW"], 0),
+            ("Méthode comptable standard ?", ["LIFO", "SCRUM", "KPI"], 0),
+        ],
+        "OPEN": [
+            "Comment corriger une erreur de journal comptable ?",
+            "Exemple d’optimisation fiscale légale."
         ]
     }
 }
 
+# Interface Streamlit
 with tab_interview:
     st.markdown('<div class="ec-card">', unsafe_allow_html=True)
-    st.markdown('<div class="ec-title">Simulation d’entretien</div>', unsafe_allow_html=True)
+    st.markdown('<div class="ec-title">Simulation d’entretien — Optimisé</div>', unsafe_allow_html=True)
 
     colA, colB = st.columns([1, 1])
     with colA:
         domain = st.selectbox("Domaine", list(QUESTION_BANK.keys()))
     with colB:
-        level = st.selectbox("Niveau", ["Junior", "Intermédiaire"])
+        level = st.selectbox("Niveau", ["Junior", "Intermédiaire", "Senior"])
+    
     add_focus = st.text_input("Focus (mots-clés séparés par des virgules, optionnel)")
 
-    gen_btn = st.button("Générer les questions", use_container_width=True)
-    if gen_btn:
+    if st.button("Générer les questions", use_container_width=True):
         bank = QUESTION_BANK[domain]
-        st.markdown("**QCM**")
-        table_rows = []
+
+        st.markdown("### QCM")
+        qcm_score = 0
         for i, (q, options, correct_idx) in enumerate(bank["QCM"], start=1):
             st.write(f"{i}. {q}")
             choice = st.radio("Réponse", options, key=f"{domain}_qcm_{i}")
             if st.button(f"Vérifier {i}", key=f"chk_{domain}_{i}"):
                 if options.index(choice) == correct_idx:
                     st.success("✅ Correct")
+                    qcm_score += 1
                 else:
                     st.error(f"Mauvaise réponse. Bonne réponse : {options[correct_idx]}")
-            table_rows.append({"Question": q, "Options": " | ".join(options), "Bonne réponse": options[correct_idx]})
-        if table_rows:
-            st.dataframe(pd.DataFrame(table_rows), use_container_width=True)
-        st.markdown("**Questions ouvertes (guide)**")
+        
+        st.markdown("### Questions ouvertes (guide STAR)")
+        star_feedback = []
         for j, q in enumerate(bank["OPEN"], start=1):
-            st.markdown(f"- {q}")
-        st.info("Conseil : répondre selon STAR (Situation, Tâche, Action, Résultat) et quantifier l’impact.")
-    st.markdown('</div>', unsafe_allow_html=True)
-# ======================================
-# TAB DASHBOARD — Vue analytique globale
-# ======================================
-tab_dashboard = st.tabs(["Dashboard"])[0]
+            ans = st.text_area(f"{j}. {q}", key=f"{domain}_open_{j}", height=100)
+            if ans.strip():
+                st.info(f"Conseil STAR pour cette réponse :\n- Situation : décrivez le contexte\n- Tâche : expliquez votre rôle\n- Action : détaillez vos actions\n- Résultat : quantifiez l’impact")
+                star_feedback.append(f"Question {j} : {q}")
 
-with tab_dashboard:
-    st.markdown('<div class="ec-card">', unsafe_allow_html=True)
-    st.markdown('<div class="ec-title">Dashboard Employabilité – Vue analytique</div>', unsafe_allow_html=True)
-    st.markdown('<div class="ec-sub">Données issues de la phase pilote (septembre – octobre 2025).</div>', unsafe_allow_html=True)
-
-    # === Indicateurs principaux ===
-    col1, col2, col3, col4 = st.columns(4)
-    col1.markdown(
-        f'<div class="kpi-box"><div class="kpi-title">📄 CV analysés</div>'
-        f'<div class="kpi-value">{st.session_state.cv_count}</div>'
-        f'<div class="kpi-sub">+5 ce mois</div></div>', unsafe_allow_html=True)
-    col2.markdown(
-        f'<div class="kpi-box"><div class="kpi-title">💬 Lettres étudiées</div>'
-        f'<div class="kpi-value">{st.session_state.letter_count}</div>'
-        f'<div class="kpi-sub">+3 ce mois</div></div>', unsafe_allow_html=True)
-    col3.markdown(
-        '<div class="kpi-box"><div class="kpi-title">🎯 Score ATS moyen</div>'
-        '<div class="kpi-value">76 / 100</div>'
-        '<div class="kpi-sub">+2 pts</div></div>', unsafe_allow_html=True)
-    col4.markdown(
-        '<div class="kpi-box"><div class="kpi-title">📈 Progression globale</div>'
-        '<div class="kpi-value">+18 %</div>'
-        '<div class="kpi-sub">sur 3 mois</div></div>', unsafe_allow_html=True)
-
-    st.divider()
-
-    # === Graphique 1 : évolution du score moyen ===
-    st.markdown("### Évolution du score moyen (septembre – octobre)")
-    data = pd.DataFrame({
-        "Mois": ["Septembre", "Octobre"],
-        "Score moyen": [74, 76]
-    })
-    st.line_chart(data, x="Mois", y="Score moyen", height=240, use_container_width=True)
-
-    # === Graphique 2 : répartition des analyses par domaine ===
-    st.markdown("### Répartition des analyses par domaine")
-    domaines = ["Business Analyst", "Data Analyst", "PMO", "Marketing", "Finance", "RH", "Tech / Dev"]
-    valeurs = [8, 7, 6, 5, 4, 3, 7]
-    df = pd.DataFrame({"Domaine": domaines, "Analyses": valeurs}).set_index("Domaine")
-    st.bar_chart(df, height=240, use_container_width=True)
-
-    # === Interprétation analytique ===
-    st.markdown("### Interprétation analytique")
-    st.markdown("""
-    - Les scores moyens ont progressé de **2 points** entre septembre et octobre.  
-    - Les domaines **Business Analyst** et **Tech/Dev** concentrent le plus d’analyses, reflétant les besoins du marché.  
-    - Ces indicateurs permettent au **Pôle Employabilité** de suivre les performances et d’ajuster les actions d’accompagnement.
-    """)
-
+        st.markdown("### Résumé et Score")
+        total_qcm = len(bank["QCM"])
+        st.metric("Score QCM", f"{qcm_score}/{total_qcm}")
+        st.markdown(f"Réponses ouvertes : {len(star_feedback)} questions guidées via STAR.")
+    
     st.markdown('</div>', unsafe_allow_html=True)
