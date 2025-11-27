@@ -432,132 +432,79 @@ with tab_cover:
                 )
     st.markdown('</div>', unsafe_allow_html=True)
 # ==============================
-# MODULE ENTRETIEN OPTIMISÉ
+# MODULE ENTRETIEN OPTIMISÉ – STABLE
 # ==============================
 import random
 
-# Base de questions par domaine (optimisée, multi-domaines)
-QUESTION_BANK = {
-    "Business Analyst": {
-        "QCM": [
-            ("Quel livrable formalise les exigences fonctionnelles ?", ["SLA", "BRD", "SOW"], 1),
-            ("Quel diagramme modélise les interactions utilisateur-système ?", ["Use Case UML", "PERT", "Gantt"], 0),
-        ],
-        "OPEN": [
-            "Décrivez un besoin ambigu clarifié et l’impact sur le projet.",
-            "Exemple d’analyse ayant conduit à une décision mesurable."
-        ]
-    },
-    "Data Analyst": {
-        "QCM": [
-            ("Quel join renvoie uniquement les correspondances ?", ["LEFT JOIN", "INNER JOIN", "FULL OUTER JOIN"], 1),
-            ("Mesure de dispersion autour de la moyenne ?", ["Variance", "Médiane", "Mode"], 0),
-        ],
-        "OPEN": [
-            "Décrivez un dashboard (KPI, utilisateurs, décisions).",
-            "Traitement des données manquantes et aberrantes."
-        ]
-    },
-    "RH": {
-        "QCM": [
-            ("Quel outil permet de gérer les performances des employés ?", ["ERP", "SIRH", "CRM"], 1),
-            ("Quelle étape est cruciale pour le recrutement ?", ["Tri CV", "Briefing", "Onboarding"], 2),
-        ],
-        "OPEN": [
-            "Comment gérer un conflit entre collègues ?",
-            "Exemple d’entretien d’évaluation réussi."
-        ]
-    },
-    "Finance": {
-        "QCM": [
-            ("Quel indicateur mesure la rentabilité ?", ["ROI", "KPI", "OKR"], 0),
-            ("Document obligatoire pour bilan ?", ["Compte de résultat", "Rapport projet", "Plan marketing"], 0),
-        ],
-        "OPEN": [
-            "Décrivez une analyse financière ayant amélioré la marge.",
-            "Comment prioriser les investissements d’un projet ?"
-        ]
-    },
-    "Management": {
-        "QCM": [
-            ("Méthode pour gérer projet Agile ?", ["Scrum", "Waterfall", "Lean"], 0),
-            ("Indicateur de performance équipe ?", ["KPI", "Budget", "ROI"], 0),
-        ],
-        "OPEN": [
-            "Exemple de décision stratégique prise avec données limitées.",
-            "Comment motiver une équipe en difficulté ?"
-        ]
-    },
-    "Marketing": {
-        "QCM": [
-            ("Qu’est-ce qu’un KPI marketing ?", ["Indicateur clé", "Budget", "Diagramme"], 0),
-            ("Outil pour analyse de marché ?", ["Google Analytics", "ERP", "Git"], 0),
-        ],
-        "OPEN": [
-            "Donnez un exemple de campagne efficace.",
-            "Comment mesurer le ROI d’une campagne marketing ?"
-        ]
-    },
-    "Comptabilité": {
-        "QCM": [
-            ("Document obligatoire pour TVA ?", ["Facture", "BRD", "SOW"], 0),
-            ("Méthode comptable standard ?", ["LIFO", "SCRUM", "KPI"], 0),
-        ],
-        "OPEN": [
-            "Comment corriger une erreur de journal comptable ?",
-            "Exemple d’optimisation fiscale légale."
-        ]
-    }
-}
-
-# ==============================
-# INTERFACE STREAMLIT
-# ==============================
+# Interface Streamlit
 with tab_interview:
     st.markdown('<div class="ec-card">', unsafe_allow_html=True)
     st.markdown('<div class="ec-title">Simulation d’entretien — Optimisé</div>', unsafe_allow_html=True)
 
+    # Sélection domaine et niveau
     colA, colB = st.columns([1, 1])
     with colA:
         domain = st.selectbox("Domaine", list(QUESTION_BANK.keys()))
     with colB:
         level = st.selectbox("Niveau", ["Junior", "Intermédiaire", "Senior"])
 
-    if st.button("Générer les questions", use_container_width=True):
-        bank = QUESTION_BANK[domain]
+    # Récupération de la banque de questions
+    bank = QUESTION_BANK[domain]
 
-        # --- QCM ---
-        st.markdown("### QCM")
-        qcm_score = 0
-        for i, (q, options, correct_idx) in enumerate(bank["QCM"], start=1):
-            st.write(f"{i}. {q}")
-            choice = st.radio("Réponse", options, key=f"{domain}_qcm_{i}")
-            if st.button(f"Vérifier {i}", key=f"chk_{domain}_{i}"):
-                if options.index(choice) == correct_idx:
-                    st.success("✅ Correct")
-                    qcm_score += 1
-                else:
-                    st.error(f"Mauvaise réponse. Bonne réponse : {options[correct_idx]}")
-        
-        # --- Questions ouvertes ---
-        st.markdown("### Questions ouvertes (guide STAR)")
-        star_feedback = []
-        for j, q in enumerate(bank["OPEN"], start=1):
-            ans = st.text_area(f"{j}. {q}", key=f"{domain}_open_{j}", height=100)
-            if ans.strip():
-                st.info(
-                    f"Conseil STAR pour cette réponse :\n"
-                    "- Situation : décrivez le contexte\n"
-                    "- Tâche : expliquez votre rôle\n"
-                    "- Action : détaillez vos actions\n"
-                    "- Résultat : quantifiez l’impact"
-                )
-                star_feedback.append(f"Question {j} : {q}")
+    # Initialisation des scores et réponses si non existant
+    if "qcm_score" not in st.session_state:
+        st.session_state.qcm_score = 0
+    if "open_answers" not in st.session_state:
+        st.session_state.open_answers = {}
 
-        # --- Résumé et Score ---
-        total_qcm = len(bank["QCM"])
-        st.markdown("### Résumé et Score")
-        st.metric("Score QCM", f"{qcm_score}/{total_qcm}")
-        st.markdown(f"Réponses ouvertes : {len(star_feedback)} questions guidées via STAR.")
-    
+    # --- QCM ---
+    st.markdown("### QCM")
+    qcm_score = 0
+    for i, (q, options, correct_idx) in enumerate(bank["QCM"], start=1):
+        st.write(f"{i}. {q}")
+
+        key_radio = f"{domain}_qcm_{i}"
+        if key_radio not in st.session_state:
+            st.session_state[key_radio] = None
+
+        choice = st.radio(
+            "Réponse",
+            options,
+            index=0 if st.session_state[key_radio] is None else options.index(st.session_state[key_radio]),
+            key=key_radio
+        )
+        st.session_state[key_radio] = choice  # sauvegarde du choix
+
+        key_btn = f"chk_{domain}_{i}"
+        if st.button(f"Vérifier {i}", key=key_btn):
+            if options.index(choice) == correct_idx:
+                st.success("✅ Correct")
+                st.session_state.qcm_score += 1
+            else:
+                st.error(f"Mauvaise réponse. Bonne réponse : {options[correct_idx]}")
+
+    total_qcm = len(bank["QCM"])
+    st.metric("Score QCM actuel", f"{st.session_state.qcm_score}/{total_qcm}")
+
+    # --- Questions ouvertes (guide STAR) ---
+    st.markdown("### Questions ouvertes (guide STAR)")
+    for j, q in enumerate(bank["OPEN"], start=1):
+        key_open = f"{domain}_open_{j}"
+        if key_open not in st.session_state:
+            st.session_state.open_answers[key_open] = ""
+        ans = st.text_area(f"{j}. {q}", value=st.session_state.open_answers.get(key_open, ""), key=key_open, height=100)
+        st.session_state.open_answers[key_open] = ans  # sauvegarde de la réponse
+        if ans.strip():
+            st.info(
+                f"Conseil STAR pour cette réponse :\n"
+                f"- Situation : décrivez le contexte\n"
+                f"- Tâche : expliquez votre rôle\n"
+                f"- Action : détaillez vos actions\n"
+                f"- Résultat : quantifiez l’impact"
+            )
+
+    st.markdown("### Résumé")
+    answered_open = sum(1 for ans in st.session_state.open_answers.values() if ans.strip())
+    st.markdown(f"Réponses ouvertes : {answered_open} question(s) guidée(s) via STAR.")
+
     st.markdown('</div>', unsafe_allow_html=True)
