@@ -449,7 +449,78 @@ with tab_interview:
         level = st.selectbox("Niveau", ["Junior", "Intermédiaire", "Senior"])
 
     # Récupération de la banque de questions
-    bank = QUESTION_BANK[domain]
+    bank =  QUESTION_BANK = {
+    "Business Analyst": {
+        "QCM": [
+            ("Quel livrable formalise les exigences fonctionnelles ?", ["SLA", "BRD", "SOW"], 1),
+            ("Quel diagramme modélise les interactions utilisateur-système ?", ["Use Case UML", "PERT", "Gantt"], 0),
+        ],
+        "OPEN": [
+            "Décrivez un besoin ambigu clarifié et l’impact sur le projet.",
+            "Exemple d’analyse ayant conduit à une décision mesurable."
+        ]
+    },
+    "Data Analyst": {
+        "QCM": [
+            ("Quel join renvoie uniquement les correspondances ?", ["LEFT JOIN", "INNER JOIN", "FULL OUTER JOIN"], 1),
+            ("Mesure de dispersion autour de la moyenne ?", ["Variance", "Médiane", "Mode"], 0),
+        ],
+        "OPEN": [
+            "Décrivez un dashboard (KPI, utilisateurs, décisions).",
+            "Traitement des données manquantes et aberrantes."
+        ]
+    },
+    "RH": {
+        "QCM": [
+            ("Quel outil permet de gérer les performances des employés ?", ["ERP", "SIRH", "CRM"], 1),
+            ("Quelle étape est cruciale pour le recrutement ?", ["Tri CV", "Briefing", "Onboarding"], 2),
+        ],
+        "OPEN": [
+            "Comment gérer un conflit entre collègues ?",
+            "Exemple d’entretien d’évaluation réussi."
+        ]
+    },
+    "Finance": {
+        "QCM": [
+            ("Quel indicateur mesure la rentabilité ?", ["ROI", "KPI", "OKR"], 0),
+            ("Document obligatoire pour bilan ?", ["Compte de résultat", "Rapport projet", "Plan marketing"], 0),
+        ],
+        "OPEN": [
+            "Décrivez une analyse financière ayant amélioré la marge.",
+            "Comment prioriser les investissements d’un projet ?"
+        ]
+    },
+    "Management": {
+        "QCM": [
+            ("Méthode pour gérer projet Agile ?", ["Scrum", "Waterfall", "Lean"], 0),
+            ("Indicateur de performance équipe ?", ["KPI", "Budget", "ROI"], 0),
+        ],
+        "OPEN": [
+            "Exemple de décision stratégique prise avec données limitées.",
+            "Comment motiver une équipe en difficulté ?"
+        ]
+    },
+    "Marketing": {
+        "QCM": [
+            ("Qu’est-ce qu’un KPI marketing ?", ["Indicateur clé", "Budget", "Diagramme"], 0),
+            ("Outil pour analyse de marché ?", ["Google Analytics", "ERP", "Git"], 0),
+        ],
+        "OPEN": [
+            "Donnez un exemple de campagne efficace.",
+            "Comment mesurer le ROI d’une campagne marketing ?"
+        ]
+    },
+    "Comptabilité": {
+        "QCM": [
+            ("Document obligatoire pour TVA ?", ["Facture", "BRD", "SOW"], 0),
+            ("Méthode comptable standard ?", ["LIFO", "SCRUM", "KPI"], 0),
+        ],
+        "OPEN": [
+            "Comment corriger une erreur de journal comptable ?",
+            "Exemple d’optimisation fiscale légale."
+        ]
+    }
+}
 
     # Initialisation des scores et réponses si non existant
     if "qcm_score" not in st.session_state:
